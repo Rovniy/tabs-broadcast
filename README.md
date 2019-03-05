@@ -21,22 +21,22 @@ yarn add tabs-broadcast
 ```
 
 ### Use plugin (ES6)
-```
+```javascript
 import TabsBroadcast from 'tabs-broadcast'
 ```
 
 Return the class that you want to initialize
 
-```
+```javascript
 const tabsBroadcast = new TabsBroadcast()
 ```
 
 ### Methods
 
-```.$emit( message: {String}, data: {String})``` - sends any event with arbitrary data to the browser<br/>
-```.$on(message: {String}, callback: {Function})``` - listens for events within the browser<br/>
-```.$once(message: {String}, callback: {Function})``` - listens for events within the browser. Deletes the subscription to the event after a call to callback<br/>
-```.$off(message: {String})``` - unsubscribes from wiretapping events of the specified method<br/>
+`.$emit( message: {String}, data: {String} )` - sends any event with arbitrary data to the browser<br/>
+`.$on( message: {String}, callback: {Function} )` - listens for events within the browser<br/>
+`.$once( message: {String}, callback: {Function} )` - listens for events within the browser. Deletes the subscription to the event after a call to callback<br/>
+`.$off( message: {String} )` - unsubscribes from wiretapping events of the specified method<br/>
 
 ### Example
 ```javascript

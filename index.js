@@ -51,4 +51,4 @@ class TabsBroadcast {
   }
 }
 
-export default TabsBroadcast
+export default new TabsBroadcast

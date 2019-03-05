@@ -10,7 +10,18 @@
 
 ## This package allows you to communicate arbitrary data between browser tabs, as well as transfer events between them
 
-### Use (ES6)
+### Install
+Using npm
+```
+npm install tabs-broadcast
+```
+
+Using yarn
+```
+yarn add tabs-broadcast
+```
+
+### Use plugin (ES6)
 ```
 import TabsBroadcast from 'tabs-broadcast'
 ```

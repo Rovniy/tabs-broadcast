@@ -1,6 +1,6 @@
 {
   "name": "tabs-broadcast",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Broadcast system for emit message and payload between browser tabs",
   "main": "index.js",
   "repository": {

@@ -39,7 +39,7 @@ const tabsBroadcast = new TabsBroadcast()
 ```.$off(message: {String})``` - unsubscribes from wiretapping events of the specified method<br/>
 
 ### Example
-```
+```javascript
 // Written in a file that handles authorization 
 tabsBroadcast.$emit('USER-IS-AUTH', { userData: {username: 'Ravy'}})
 

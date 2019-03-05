@@ -5,7 +5,7 @@
 
 # Tabs broadcast system.
 
-This package allows you to communicate arbitrary data between browser tabs, as well as transfer events between them
+This package allows you to communicate arbitrary data between browser tabs, as well as transfer events between them. This solution is supported in Chrome, Firefox and Opera. The exact version support can be found in [caniuse.com](https://caniuse.com/#search=BroadcastChannel) 
 <hr/>
 
 ### Install

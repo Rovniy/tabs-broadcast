@@ -22,14 +22,9 @@ yarn add tabs-broadcast
 <hr/>
 
 ### Use plugin (ES6)
+Return the class that you want to initialize
 ```javascript
 import TabsBroadcast from 'tabs-broadcast'
-```
-
-Return the class that you want to initialize
-
-```javascript
-const tabsBroadcast = new TabsBroadcast()
 ```
 
 <hr/>
@@ -46,18 +41,18 @@ const tabsBroadcast = new TabsBroadcast()
 ### Example
 ```javascript
 // Written in a file that handles authorization 
-tabsBroadcast.$emit('USER-IS-AUTH', { userData: {username: 'Ravy'}})
+TabsBroadcast.$emit('USER-IS-AUTH', { userData: {username: 'Ravy'}})
 
 // It is written in the file that causes authorization
-tabsBroadcast.$on('USER-IS-AUTH', (data) => {
+TabsBroadcast.$on('USER-IS-AUTH', (data) => {
     console.log('UserData on event', data)
 })
 
 // Will cause a colback and remove the listener. Will be executed only once
-tabsBroadcast.$once('USER-IS-AUTH', (data) => {
+TabsBroadcast.$once('USER-IS-AUTH', (data) => {
     console.log('UserData once callback', data)
 })
 
 // Removes a listener
-tabsBroadcast.$off('USER-IS-AUTH')
+TabsBroadcast.$off('USER-IS-AUTH')
 ```

@@ -1,7 +1,4 @@
-/**
- * Broadcast system for emit message and payload between browser tabs. Can sync any UI behavior
- */
-class Intercom {
+class TabsBroadcast {
   constructor() {
     this.instance = null
     this.callbacks = []
@@ -10,7 +7,7 @@ class Intercom {
   }
   
   _createInstance() {
-    this.instance = new BroadcastChannel('intercom')
+    this.instance = new BroadcastChannel('broadcast')
     
     this.instance.onmessage = (postedMessage) => {
       this.callbacks.forEach((item, index) => {
@@ -54,8 +51,4 @@ class Intercom {
   }
 }
 
-export default {
-  install(Vue) {
-    Vue.prototype.$intercom = new Intercom();
-  }
-};
+export default TabsBroadcast

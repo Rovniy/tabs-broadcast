@@ -1,11 +1,11 @@
 {
-  "name": "vue-intercom",
-  "version": "1.0.0",
+  "name": "tabs-broadcast",
+  "version": "2.1.2",
   "description": "Broadcast system for emit message and payload between browser tabs",
   "main": "index.js",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Rovniy/vue-intercom.git"
+    "url": "git+https://github.com/Rovniy/tabs-broadcast.git"
   },
   "keywords": [
     "Intercom",

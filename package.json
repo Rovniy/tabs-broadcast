@@ -1,0 +1,22 @@
+{
+  "name": "vue-intercom",
+  "version": "1.0.0",
+  "description": "Broadcast system for emit message and payload between browser tabs",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Rovniy/vue-intercom.git"
+  },
+  "keywords": [
+    "Intercom",
+    "Vue.js",
+    "Browser",
+    "Tabs"
+  ],
+  "author": "Andrew Rovniy",
+  "license": "GPL",
+  "bugs": {
+    "url": "https://github.com/Rovniy/vue-intercom/issues"
+  },
+  "homepage": "https://github.com/Rovniy/vue-intercom#readme"
+}

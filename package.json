@@ -1,8 +1,8 @@
 {
   "name": "tabs-broadcast",
-  "version": "2.1.7",
+  "version": "2.1.8",
   "description": "Broadcast system for emit message and payload between browser tabs",
-  "main": "index.js",
+  "main": "index.min.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Rovniy/tabs-broadcast.git"

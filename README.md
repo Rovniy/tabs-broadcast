@@ -1,9 +1,8 @@
 # Tabs broadcast system.
 
 <p align="center">
-  <img src="https://badgen.net/npm/v/vue-tabs-broadcast">
-  <img src="https://badgen.net/npm/license/vue-tabs-broadcast">
-  <img src="https://badgen.net/badgesize/gzip/https://github.com/Rovniy/vue-tabs-broadcast/blob/master/index.js">
+  <img src="https://badgen.net/github/stars/rovniy/tabs-broadcast">
+  <img src="https://badgen.net/badgesize/gzip/https://github.com/Rovniy/tabs-broadcast/blob/master/index.js">
 </p>
 
 

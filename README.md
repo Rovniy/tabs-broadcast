@@ -78,6 +78,17 @@ const someCallbackFunction = payload => {
 instance.on('USER_LOG_OUT', someCallbackFunction);
 ```
 
+### Subscribe to event by list
+
+```javascript
+// It is written in the file that causes authorization
+instance.onList([
+	[ 'EVENT_NUMBER_1', callbackNumberOne ],
+	[ 'EVENT_NUMBER_2', callbackNumberTwo ],
+	[ 'EVENT_NUMBER_3', callbackNumberThree ],
+])
+```
+
 ### One-Time Event Listener
 Will cause the callback and remove the listener. This will be executed only once:
 
@@ -85,6 +96,17 @@ Will cause the callback and remove the listener. This will be executed only once
 instance.once('USER_IS_AUTH', (data) => {
     console.log('UserData once callback', data);
 });
+```
+
+### Subscribe to One-Time event by list
+
+```javascript
+// It is written in the file that causes authorization
+instance.onceList([
+	[ 'EVENT_NUMBER_1', callbackNumberOne ],
+	[ 'EVENT_NUMBER_2', callbackNumberTwo ],
+	[ 'EVENT_NUMBER_3', callbackNumberThree ],
+])
 ```
 
 ### Removing a Listener

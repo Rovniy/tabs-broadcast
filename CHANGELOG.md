@@ -1,3 +1,7 @@
+## 3.0.1
+
+- [fix] Update README.md for support LIST subscribes
+
 ## 3.0.0
 
 - `TabsBroadcast` is now a constructor instead of a class instance.

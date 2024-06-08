@@ -3,21 +3,36 @@
 ![License](https://badgen.net/github/license/rovniy/tabs-broadcast)
 ![Stars](https://badgen.net/github/stars/rovniy/tabs-broadcast)
 ![GitHub file size in bytes](https://img.shields.io/github/size/Rovniy/tabs-broadcast/index.js)
+![Latest tag](https://badgen.net/github/tag/Rovniy/tabs-broadcast)
+![Repo depends](https://badgen.net/github/dependents-repo/Rovniy/tabs-broadcast)
+![Pckg depends](https://badgen.net/github/dependents-pkg/Rovniy/tabs-broadcast)
+![Last commits](https://badgen.net/github/last-commit/Rovniy/tabs-broadcast)
 
 
-This package allows you to communicate arbitrary data between browser tabs, as well as transfer events between them. This solution is supported in Chrome, Firefox, and Opera. The exact version support can be found on [caniuse.com](https://caniuse.com/#search=BroadcastChannel).
+This package allows you to communicate arbitrary data between browser tabs, as well as transfer events between them. This solution is supported in all popular browser and Node.js.
 
 <hr/>
 
 ## Installation
-Using npm
+
+### Using [npm](https://www.npmjs.com/)
 ```
 npm install tabs-broadcast
 ```
 
-Using yarn
+### Using [pnpm](https://pnpm.io/ru/)
+```
+pnpm install tabs-broadcast
+```
+
+### Using [yarn](https://yarnpkg.com/)
 ```
 yarn add tabs-broadcast
+```
+
+### Using [bun](https://bun.sh/)
+```
+bun install tabs-broadcast
 ```
 
 <hr/>
@@ -146,3 +161,7 @@ instance.once('USER_LOG_OUT', (message: string) => {
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+<hr>
+
+![Ravy.pro](https://badgen.net/static/XPLOIT/RAVY/fa4c28)

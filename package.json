@@ -20,9 +20,9 @@
   "author": "Andrei (Ravy) Rovnyi contact@ravy.pro",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/Rovniy/vue-intercom/issues"
+    "url": "https://github.com/Rovniy/tabs-broadcast/issues"
   },
-  "homepage": "https://github.com/Rovniy/vue-intercom#readme",
+  "homepage": "https://ravy.pro",
   "devDependencies": {
     "@babel/core": "^7.24.7",
     "@babel/preset-env": "^7.24.7",

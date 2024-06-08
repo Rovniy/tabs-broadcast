@@ -1,9 +1,8 @@
 name: Publish to NPM
 
 on:
-  push:
-    branches:
-      - main
+  release:
+    types: [published]
 
 jobs:
   publish:
@@ -16,8 +15,17 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '16'
+          node-version: '20'
           registry-url: 'https://registry.npmjs.org/'
+
+      - name: Extract version from tag
+        id: extract_tag
+        run: echo "::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}"
+
+      - name: Update version in package.json
+        run: |
+          sed -i 's/"version": ".*"/"version": "${{ steps.extract_tag.outputs.VERSION }}"/' package.json
+          cat package.json
 
       - name: Publish to NPM
         env:

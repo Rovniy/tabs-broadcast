@@ -1,6 +1,6 @@
 {
   "name": "tabs-broadcast",
-  "version": "2.2.3",
+  "version": "2.2.4",
   "description": "A library for broadcasting messages between browser tabs.",
   "main": "index.js",
   "types": "index.d.ts",

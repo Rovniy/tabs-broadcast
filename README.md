@@ -31,28 +31,28 @@ import TabsBroadcast from 'tabs-broadcast'
 
 ### Methods
 
-`.$emit( message: {String}, data: {String} )` - sends any event with arbitrary data to the browser<br/>
-`.$on( message: {String}, callback: {Function} )` - listens for events within the browser<br/>
-`.$once( message: {String}, callback: {Function} )` - listens for events within the browser. Deletes the subscription to the event after a call to callback<br/>
-`.$off( message: {String} )` - unsubscribes from wiretapping events of the specified method<br/>
+`emit( message: {String}, data: {String} )` - sends any event with arbitrary data to the browser<br/>
+`on( message: {String}, callback: {Function} )` - listens for events within the browser<br/>
+`once( message: {String}, callback: {Function} )` - listens for events within the browser. Deletes the subscription to the event after a call to callback<br/>
+`off( message: {String} )` - unsubscribes from wiretapping events of the specified method<br/>
 
 <hr/>
 
 ### Example
 ```javascript
 // Written in a file that handles authorization 
-TabsBroadcast.$emit('USER-IS-AUTH', { userData: {username: 'Ravy'}})
+TabsBroadcast.emit('USER-IS-AUTH', { userData: {username: 'Ravy'}})
 
 // It is written in the file that causes authorization
-TabsBroadcast.$on('USER-IS-AUTH', (data) => {
+TabsBroadcast.on('USER-IS-AUTH', (data) => {
     console.log('UserData on event', data)
 })
 
 // Will cause a colback and remove the listener. Will be executed only once
-TabsBroadcast.$once('USER-IS-AUTH', (data) => {
+TabsBroadcast.once('USER-IS-AUTH', (data) => {
     console.log('UserData once callback', data)
 })
 
 // Removes a listener
-TabsBroadcast.$off('USER-IS-AUTH')
+TabsBroadcast.off('USER-IS-AUTH')
 ```

@@ -1,6 +1,6 @@
 {
   "name": "tabs-broadcast",
-  "version": "2.1.11",
+  "version": "2.2.0",
   "description": "Broadcast system for emit message and payload between browser tabs",
   "main": "index.js",
   "repository": {
@@ -13,8 +13,8 @@
     "Browser",
     "Tabs"
   ],
-  "author": "Andrew Rovniy",
-  "license": "GPL",
+  "author": "Andrei (Ravy) Rovnyi",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/Rovniy/vue-intercom/issues"
   },

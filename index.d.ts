@@ -29,7 +29,7 @@ declare class TabsBroadcast {
     once(type: string, callback: Function): void;
 
     /**
-     * Register multiple callbacks to be executed only once when messages of specified types are received.
+     * Register multiple callbacks to be executed one-time when messages of specified types are received.
      * @param {Array.<Array.<string, (payload: any) => void>>} list - List of type-callback pairs.
      */
     onceList(list: Array<[string, Function]>): void;

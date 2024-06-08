@@ -79,7 +79,7 @@ class TabsBroadcast {
   }
 
   /**
-   * Register multiple callbacks to be executed only once when messages of specified types are received.
+   * Register multiple callbacks to be executed one-time when messages of specified types are received.
    * @param {Array.<Array.<string, function>>} list - List of type-callback pairs.
    */
   onceList(list) {

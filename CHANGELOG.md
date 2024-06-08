@@ -1,3 +1,8 @@
+## 3.0.2
+
+- [fix] Update README.md for support LIST subscribes. Again
+- Update jsDocs
+
 ## 3.0.1
 
 - [fix] Update README.md for support LIST subscribes

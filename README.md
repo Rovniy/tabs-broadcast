@@ -44,6 +44,12 @@ Registers a callback to listen for events within the browser.
 ### `once(message: string, callback: (data: any) => void): void`
 Registers a callback to listen for events within the browser. Deletes the subscription to the event after the callback is called once.
 
+### `onList(list: Array<[string, Function]>): void;`
+Register multiple callbacks to be executed whenever messages of specified types are received.
+
+### `onceList(list: Array<[string, Function]>): void;`
+Register multiple callbacks to be executed one-time when messages of specified types are received.
+
 ### `off(message: string): void`
 Unsubscribes from listening to events of the specified type.
 

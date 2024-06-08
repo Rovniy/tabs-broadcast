@@ -1,9 +1,13 @@
 {
   "name": "tabs-broadcast",
-  "version": "2.2.4",
+  "version": "3.0.0",
   "description": "A library for broadcasting messages between browser tabs.",
   "main": "index.js",
   "types": "index.d.ts",
+  "type": "module",
+  "scripts": {
+    "test": "jest"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Rovniy/tabs-broadcast.git"
@@ -18,5 +22,12 @@
   "bugs": {
     "url": "https://github.com/Rovniy/vue-intercom/issues"
   },
-  "homepage": "https://github.com/Rovniy/vue-intercom#readme"
+  "homepage": "https://github.com/Rovniy/vue-intercom#readme",
+  "devDependencies": {
+    "@babel/core": "^7.24.7",
+    "@babel/preset-env": "^7.24.7",
+    "@types/jest": "^29.5.12",
+    "babel-jest": "^29.7.0",
+    "jest": "^29.7.0"
+  }
 }

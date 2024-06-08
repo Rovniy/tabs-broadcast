@@ -1,4 +1,10 @@
-node_modules
-test
-*.log
 .idea
+.github
+__tests__
+coverage
+node_modules
+.gitignore
+.npmignore
+babel.config.json
+jest.config.js
+package-lock.json

@@ -2,6 +2,8 @@
 
 ![License](https://badgen.net/github/license/rovniy/tabs-broadcast)
 ![Stars](https://badgen.net/github/stars/rovniy/tabs-broadcast)
+![GitHub file size in bytes](https://img.shields.io/github/size/Rovniy/tabs-broadcast/index.js)
+
 
 This package allows you to communicate arbitrary data between browser tabs, as well as transfer events between them. This solution is supported in Chrome, Firefox, and Opera. The exact version support can be found on [caniuse.com](https://caniuse.com/#search=BroadcastChannel).
 
@@ -22,8 +24,11 @@ yarn add tabs-broadcast
 
 ## Use library (ES6)
 To use the library, import the `TabsBroadcast` class and initialize it:
+
 ```javascript
 import TabsBroadcast from 'tabs-broadcast';
+
+const instance = new TabsBroadcast()
 ```
 
 <hr/>
@@ -52,9 +57,9 @@ In a file that handles authorization:
 
 ```javascript
 // Written in a file that handles authorization 
-TabsBroadcast.emit('USER_IS_AUTH', { userData: { username: 'Ravy' }});
-TabsBroadcast.emit('USER_LOG_OUT', 'Hello World');
-TabsBroadcast.emit('SOME_EVENT');
+instance.emit('USER_IS_AUTH', { userData: { username: 'Ravy' }});
+instance.emit('USER_LOG_OUT', 'Hello World');
+instance.emit('SOME_EVENT');
 ```
 
 ### Listening to Events
@@ -63,21 +68,21 @@ In a file that requires authorization data:
 
 ```javascript
 // It is written in the file that causes authorization
-TabsBroadcast.on('USER_IS_AUTH', (data) => {
+instance.on('USER_IS_AUTH', (data) => {
     console.log('UserData on event', data); // -> { userData: { username: 'Ravy' }}
 });
 
 const someCallbackFunction = payload => {
 	console.log('someCallbackFunction : Payload=', payload); // -> 'Hello World'
 };
-TabsBroadcast.on('USER_LOG_OUT', someCallbackFunction);
+instance.on('USER_LOG_OUT', someCallbackFunction);
 ```
 
 ### One-Time Event Listener
 Will cause the callback and remove the listener. This will be executed only once:
 
 ```javascript
-TabsBroadcast.once('USER_IS_AUTH', (data) => {
+instance.once('USER_IS_AUTH', (data) => {
     console.log('UserData once callback', data);
 });
 ```
@@ -87,7 +92,7 @@ TabsBroadcast.once('USER_IS_AUTH', (data) => {
 Removes a listener for the specified event type:
 
 ```javascript
-TabsBroadcast.off('USER_IS_AUTH');
+instance.off('USER_IS_AUTH');
 ```
 
 ## TypeScript Support
@@ -97,13 +102,15 @@ This library includes TypeScript type definitions. You can use the library in Ty
 ```typescript
 import TabsBroadcast from 'tabs-broadcast';
 
-TabsBroadcast.emit('USER_IS_AUTH', { userData: { username: 'Ravy' }});
+const instance = new TabsBroadcast();
 
-TabsBroadcast.on('USER_IS_AUTH', (data: { userData: { username: string } }) => {
+instance.emit('USER_IS_AUTH', { userData: { username: 'Ravy' }});
+
+instance.on('USER_IS_AUTH', (data: { userData: { username: string } }) => {
     console.log('UserData on event', data);
 });
 
-TabsBroadcast.once('USER_LOG_OUT', (message: string) => {
+instance.once('USER_LOG_OUT', (message: string) => {
     console.log('User has logged out:', message);
 });
 ```

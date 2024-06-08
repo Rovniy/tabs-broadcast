@@ -1,28 +1,38 @@
 declare class TabsBroadcast {
+    private static instance: TabsBroadcast;
+    private callbacks: Array<{ type: string, callback: Function, toRemove?: boolean }>;
+    private channelName: string;
     private instance: BroadcastChannel;
-    private callbacks: Array<{
-        type: string;
-        callback: (payload: any) => void;
-        toRemove?: boolean;
-    }>;
 
-    constructor();
+    constructor(channelName: string, listenOwnChannel: boolean);
 
     private init(): void;
 
     /**
      * Register a callback to be executed whenever a message of the specified type is received.
      * @param {string} type - The type of the message.
-     * @param {(payload: any) => void} callback - The function to execute when a message of the specified type is received.
+     * @param {Function} callback - The function to execute when a message of the specified type is received.
      */
-    on(type: string, callback: (payload: any) => void): void;
+    on(type: string, callback: Function): void;
+
+    /**
+     * Register multiple callbacks to be executed whenever messages of specified types are received.
+     * @param {Array.<Array.<string, void>>} list - List of type-callback pairs.
+     */
+    onList(list: Array<[string, Function]>): void;
 
     /**
      * Register a callback to be executed only once when a message of the specified type is received.
      * @param {string} type - The type of the message.
-     * @param {(payload: any) => void} callback - The function to execute when a message of the specified type is received.
+     * @param {Function} callback - The function to execute when a message of the specified type is received.
      */
-    once(type: string, callback: (payload: any) => void): void;
+    once(type: string, callback: Function): void;
+
+    /**
+     * Register multiple callbacks to be executed only once when messages of specified types are received.
+     * @param {Array.<Array.<string, (payload: any) => void>>} list - List of type-callback pairs.
+     */
+    onceList(list: Array<[string, Function]>): void;
 
     /**
      * Unregister all callbacks of the specified type.
@@ -36,7 +46,11 @@ declare class TabsBroadcast {
      * @param {any} [payload] - The payload of the message.
      */
     emit(type: string, payload?: any): void;
+
+    /**
+     * Destroy Broadcast channel. Messages will not receive
+     */
+    destroy(): void;
 }
 
-declare const tabsBroadcast: TabsBroadcast;
-export default tabsBroadcast;
+export default TabsBroadcast;

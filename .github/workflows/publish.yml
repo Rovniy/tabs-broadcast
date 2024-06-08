@@ -27,6 +27,12 @@ jobs:
           sed -i 's/"version": ".*"/"version": "${{ steps.extract_tag.outputs.VERSION }}"/' package.json
           cat package.json
 
+      - name: Install dependencies
+        run: npm install
+
+      - name: Lint and Test
+        run: npm test
+
       - name: Publish to NPM
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

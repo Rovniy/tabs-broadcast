@@ -1,14 +1,13 @@
-<p align="left">
-  <img src="https://badgen.net/github/stars/rovniy/tabs-broadcast">
-  <img src="https://badgen.net/badgesize/gzip/rovniy/tabs-broadcast/master/index.js">
-</p>
-
 # Tabs broadcast system.
 
-This package allows you to communicate arbitrary data between browser tabs, as well as transfer events between them. This solution is supported in Chrome, Firefox and Opera. The exact version support can be found in [caniuse.com](https://caniuse.com/#search=BroadcastChannel) 
+![License](https://badgen.net/github/license/rovniy/tabs-broadcast)
+![Stars](https://badgen.net/github/stars/rovniy/tabs-broadcast)
+
+This package allows you to communicate arbitrary data between browser tabs, as well as transfer events between them. This solution is supported in Chrome, Firefox, and Opera. The exact version support can be found on [caniuse.com](https://caniuse.com/#search=BroadcastChannel).
+
 <hr/>
 
-### Install
+## Installation
 Using npm
 ```
 npm install tabs-broadcast
@@ -21,38 +20,94 @@ yarn add tabs-broadcast
 
 <hr/>
 
-### Use plugin (ES6)
-Return the class that you want to initialize
+## Use library (ES6)
+To use the library, import the `TabsBroadcast` class and initialize it:
 ```javascript
-import TabsBroadcast from 'tabs-broadcast'
+import TabsBroadcast from 'tabs-broadcast';
 ```
 
 <hr/>
 
 ### Methods
 
-`emit( message: {String}, data: {String} )` - sends any event with arbitrary data to the browser<br/>
-`on( message: {String}, callback: {Function} )` - listens for events within the browser<br/>
-`once( message: {String}, callback: {Function} )` - listens for events within the browser. Deletes the subscription to the event after a call to callback<br/>
-`off( message: {String} )` - unsubscribes from wiretapping events of the specified method<br/>
+### `emit(message: string, data?: any): void`
+Sends an event with arbitrary data to other browser tabs.
+
+### `on(message: string, callback: (data: any) => void): void`
+Registers a callback to listen for events within the browser.
+
+### `once(message: string, callback: (data: any) => void): void`
+Registers a callback to listen for events within the browser. Deletes the subscription to the event after the callback is called once.
+
+### `off(message: string): void`
+Unsubscribes from listening to events of the specified type.
 
 <hr/>
 
-### Example
+## Examples
+
+### Emitting Events
+
+In a file that handles authorization:
+
 ```javascript
 // Written in a file that handles authorization 
-TabsBroadcast.emit('USER-IS-AUTH', { userData: {username: 'Ravy'}})
-
-// It is written in the file that causes authorization
-TabsBroadcast.on('USER-IS-AUTH', (data) => {
-    console.log('UserData on event', data)
-})
-
-// Will cause a colback and remove the listener. Will be executed only once
-TabsBroadcast.once('USER-IS-AUTH', (data) => {
-    console.log('UserData once callback', data)
-})
-
-// Removes a listener
-TabsBroadcast.off('USER-IS-AUTH')
+TabsBroadcast.emit('USER_IS_AUTH', { userData: { username: 'Ravy' }});
+TabsBroadcast.emit('USER_LOG_OUT', 'Hello World');
+TabsBroadcast.emit('SOME_EVENT');
 ```
+
+### Listening to Events
+
+In a file that requires authorization data:
+
+```javascript
+// It is written in the file that causes authorization
+TabsBroadcast.on('USER_IS_AUTH', (data) => {
+    console.log('UserData on event', data); // -> { userData: { username: 'Ravy' }}
+});
+
+const someCallbackFunction = payload => {
+	console.log('someCallbackFunction : Payload=', payload); // -> 'Hello World'
+};
+TabsBroadcast.on('USER_LOG_OUT', someCallbackFunction);
+```
+
+### One-Time Event Listener
+Will cause the callback and remove the listener. This will be executed only once:
+
+```javascript
+TabsBroadcast.once('USER_IS_AUTH', (data) => {
+    console.log('UserData once callback', data);
+});
+```
+
+### Removing a Listener
+
+Removes a listener for the specified event type:
+
+```javascript
+TabsBroadcast.off('USER_IS_AUTH');
+```
+
+## TypeScript Support
+
+This library includes TypeScript type definitions. You can use the library in TypeScript projects with full type support.
+
+```typescript
+import TabsBroadcast from 'tabs-broadcast';
+
+TabsBroadcast.emit('USER_IS_AUTH', { userData: { username: 'Ravy' }});
+
+TabsBroadcast.on('USER_IS_AUTH', (data: { userData: { username: string } }) => {
+    console.log('UserData on event', data);
+});
+
+TabsBroadcast.once('USER_LOG_OUT', (message: string) => {
+    console.log('User has logged out:', message);
+});
+```
+
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.

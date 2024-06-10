@@ -1,10 +1,10 @@
 .idea
 .github
-__tests__
 coverage
 node_modules
+src
 .gitignore
 .npmignore
-babel.config.json
-jest.config.js
 package-lock.json
+vite.config.js
+tsconfig.json

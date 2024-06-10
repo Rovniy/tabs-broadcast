@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "declarationMap": true,
+    "target": "ESNext",
+    "moduleResolution": "node",
+    "lib": [
+      "ESNext",
+      "dom"
+    ],
+  }
+}

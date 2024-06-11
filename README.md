@@ -33,7 +33,7 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 
 You can access the live demo at the following URL:
 
-[TabsBroadcast Demo](http://tabs-broadcast.ravy.pro)
+[TabsBroadcast Demo](https://tabs-broadcast.ravy.pro)
 
 ## Installation
 

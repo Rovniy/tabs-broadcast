@@ -2,7 +2,7 @@
 
 ![License](https://badgen.net/github/license/rovniy/tabs-broadcast)
 ![Stars](https://badgen.net/github/stars/rovniy/tabs-broadcast)
-![GitHub file size in bytes](https://img.shields.io/github/size/Rovniy/tabs-broadcast/index.js)
+![GitHub file size in bytes](https://img.shields.io/github/size/Rovniy/tabs-broadcast/index.es.js)
 ![Latest tag](https://badgen.net/github/tag/Rovniy/tabs-broadcast)
 ![Repo depends](https://badgen.net/github/dependents-repo/Rovniy/tabs-broadcast)
 ![Pckg depends](https://badgen.net/github/dependents-pkg/Rovniy/tabs-broadcast)
@@ -56,7 +56,7 @@ bun install tabs-broadcast
 ```
 
 ## Usage
-To use the library, import the `TabsBroadcast` class and initialize it:
+To use the library, import the **TabsBroadcast** class and initialize it:
 
 ### Importing the Library
 ```javascript
@@ -166,7 +166,7 @@ tabsBroadcast.setConfig({
 <hr>
 
 ### `destroy(): void`
-Destroy the BroadcastChannel. Messages will no longer be received.
+Destroy the **BroadcastChannel**. Messages will no longer be received.
 ```javascript
 tabsBroadcast.destroy();
 ```
@@ -207,27 +207,26 @@ window.addEventListener('beforeunload', () => {
     tabsBroadcast.destroy();
 });
 ```
-This example demonstrates how to create an instance of TabsBroadcast, register an event listener for a custom event, emit an event only from the primary tab, and handle the tab's unload event to destroy the BroadcastChannel.
+This example demonstrates how to create an instance of **TabsBroadcast**, register an event listener for a custom event, emit an event only from the primary tab, and handle the tab's unload event to destroy the BroadcastChannel.
 
 ### Why Do I Need Primary-Slave Tab Management?
 
 In modern web applications, users often open multiple tabs of the same application. Managing the state and interaction between these tabs efficiently is crucial. Primary-Slave Tab Management addresses several key challenges:
 
-1. `Avoiding Conflicts`: When multiple tabs attempt to perform the same actions (e.g., synchronizing data with the server), it can lead to conflicts and errors. Primary-Slave Tab Management designates one tab as the primary tab, responsible for executing such critical tasks, while the other tabs (slaves) perform auxiliary functions.
-2. `Resource Optimization`: Performing tasks (like background data synchronization or periodic updates) only in one tab reduces the load on the browser and server, significantly improving performance and lowering resource consumption.
-3. `Centralized State Management`: The primary tab can manage the shared state of the application and coordinate actions across all tabs. This ensures data consistency and predictable application behavior.
+1. **Avoiding Conflicts**: When multiple tabs attempt to perform the same actions (e.g., synchronizing data with the server), it can lead to conflicts and errors. Primary-Slave Tab Management designates one tab as the primary tab, responsible for executing such critical tasks, while the other tabs (slaves) perform auxiliary functions.
+2. **Resource Optimization**: Performing tasks (like background data synchronization or periodic updates) only in one tab reduces the load on the browser and server, significantly improving performance and lowering resource consumption.
+3. **Centralized State Management**: The primary tab can manage the shared state of the application and coordinate actions across all tabs. This ensures data consistency and predictable application behavior.
 
 ### What Problems Can Primary-Slave Tab Management Solve?
 
-1. `Data Synchronization`: The primary tab can perform periodic data synchronization with the server and distribute updates to other tabs, ensuring data is up-to-date across all tabs.
-2. `User Session Management`: The primary tab can monitor user activity and manage sessions (e.g., automatic logout on inactivity), enhancing security and user experience.
-3. `Notifications and Alerts`: The primary tab can centrally handle notifications and alerts, preventing the user from receiving duplicate notifications in every tab.
-4. `Load Distribution`: In scenarios involving resource-intensive operations (e.g., processing large data sets), the primary tab can distribute tasks among other tabs, optimizing overall application performance.
+1. **Data Synchronization**: The primary tab can perform periodic data synchronization with the server and distribute updates to other tabs, ensuring data is up-to-date across all tabs.
+2. **User Session Management**: The primary tab can monitor user activity and manage sessions (e.g., automatic logout on inactivity), enhancing security and user experience.
+3. **Notifications and Alerts**: The primary tab can centrally handle notifications and alerts, preventing the user from receiving duplicate notifications in every tab.
+4. **Load Distribution**: In scenarios involving resource-intensive operations (e.g., processing large data sets), the primary tab can distribute tasks among other tabs, optimizing overall application performance.
 
 Primary-Slave Tab Management is an effective way to improve performance, manage state, and enhance the reliability of web applications operating with multiple tabs.
 
 ## TypeScript Support
-
 
 This library fully supports TypeScript, providing type definitions for seamless integration with TypeScript projects. TypeScript users can leverage static typing to catch errors early in the development process and benefit from improved code editor support, including auto-completion and type checking.
 

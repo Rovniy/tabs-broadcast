@@ -1,7 +1,7 @@
 {
   "name": "tabs-broadcast",
   "amdName": "tabs-broadcast",
-  "version": "3.1.3",
+  "version": "3.1.4",
   "description": "Library for managing inter-tab communication",
   "main": "index.es.js",
   "jsnext:main": "index.es.js",

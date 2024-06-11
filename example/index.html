@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Primary/Slave Tabs</title>
+</head>
+<body>
+<h1>I am: <span id="status"></span></h1>
+
+<button id="emitBtn">Emit test event</button>
+
+<script type="module">
+    import TabsBroadcast from '../dist/index.es.js'
+
+    const statusNode = document.querySelector('#status')
+    const emitBtn = document.querySelector('#emitBtn')
+
+    const tb = new TabsBroadcast({
+        onBecomePrimary: data => {
+	        console.log('onBecomePrimary2', data)
+	        statusNode.innerHTML = tb.isPrimary() ? 'Primary' : 'Slave'
+        }
+    });
+
+    tb.
+
+    statusNode.innerHTML = tb.isPrimary() ? 'Primary' : 'Slave'
+
+    emitBtn.addEventListener('click', () => {
+		tb.emit('TEST_EVENT', { payload: 123 })
+    })
+
+    tb.on('TEST_EVENT', data => console.log('TEST_EVENT', data))
+</script>
+
+</body>
+</html>

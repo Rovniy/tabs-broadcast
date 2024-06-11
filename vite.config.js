@@ -11,8 +11,8 @@ export default defineConfig({
 		rollupOptions: {
 			plugins: [ terser() ],
 			output: {
-				dir: 'dist',
-				format: [ 'es', 'umd', 'iife' ],
+				dir: './',
+				format: [ 'es', 'umd' ],
 				name: 'TabsBroadcast'
 			}
 		},

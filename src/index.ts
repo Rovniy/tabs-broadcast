@@ -1,5 +1,5 @@
 /**
- * @file main.ts
+ * @file index.ts
  * @description Entry point for the TabsBroadcast library.
  *
  * This file serves as the entry point for the TabsBroadcast library. It exports the

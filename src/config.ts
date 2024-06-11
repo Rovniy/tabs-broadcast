@@ -17,7 +17,6 @@ export default {
 		listenOwnChannel: true, // Listen broadcast event on current tab
 		emitByPrimaryOnly: true, // Emits event only by Primary tab
 		onBecomePrimary: () => {}, // Global event when current tab become Primary
-		onTabsUpdate: () => {}, // Global event when Primary tab changed
 	},
 	dict: {
 		tab_prefix: 'xploit_tab_id_',

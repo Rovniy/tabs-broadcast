@@ -5,6 +5,7 @@ node_modules
 src
 .gitignore
 .npmignore
+index.html
 package-lock.json
-vite.config.js
 tsconfig.json
+vite.config.js

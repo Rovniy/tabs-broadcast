@@ -10,7 +10,7 @@
  */
 import globalConfig from './config'
 import { TabsWorker } from './tabsWorker'
-import {TCallbackItem, TDefaultConfig, TEvent, TPayload} from "./types";
+import { TCallbackItem, TDefaultConfig, TEvent, TPayload } from './types';
 
 /**
  * TabsBroadcast class facilitates inter-tab communication using the BroadcastChannel API.
@@ -44,7 +44,6 @@ export class TabsBroadcast {
         if (!window) return
 
         this.#worker = new TabsWorker();
-
         this.#channel = new BroadcastChannel(this.#channelName);
 
         this.#channel.onmessage = (event) => {
@@ -52,9 +51,9 @@ export class TabsBroadcast {
 
             this.#callbacks = this.#callbacks.filter(item => {
                 if (item.type === type) {
-                    item.callback(payload);
+                    item.callback(event.data);
 
-                    return !item.toRemove;
+                    return !item.once;
                 }
 
                 return true;
@@ -112,7 +111,7 @@ export class TabsBroadcast {
      * @param {function} callback - The function to execute when a message of the specified type is received.
      */
     once(type: string, callback: () => void) {
-        this.#callbacks.push({ type, callback, toRemove: true });
+        this.#callbacks.push({ type, callback, once: true });
     }
 
     /**
@@ -125,7 +124,7 @@ export class TabsBroadcast {
         list.forEach(([type, callback]) => {
             if (!type || !callback) return;
 
-            this.#callbacks.push({ type, callback, toRemove: true });
+            this.#callbacks.push({ type, callback, once: true });
         });
     }
 
@@ -191,5 +190,12 @@ export class TabsBroadcast {
 
         TabsBroadcast.instance = null;
         this.#channel = null;
+    }
+
+    /**
+     * Receive copy of events list
+     */
+    getEvents() {
+        return [ ...this.#callbacks ]
     }
 }

@@ -55,11 +55,13 @@ export class TabsWorker {
 		};
 
 		// Adding event listeners
-		window.addEventListener('load', loadCb);
+		if (document.readyState === "complete") {
+			loadCb();
+		} else {
+			window.addEventListener('load', loadCb);
+		}
 		window.addEventListener('beforeunload', beforeUnloadCb);
 		window.addEventListener('storage', storageCb);
-
-		loadCb();
 	}
 
 	/**

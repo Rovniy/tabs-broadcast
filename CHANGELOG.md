@@ -1,3 +1,14 @@
+## 3.1.0
+
+- Improved TypeScript Definitions: Enhanced type definitions for event handling, ensuring proper typing for `event.detail`.
+- Singleton Pattern: Ensured `TabsBroadcast` maintains a single instance across the application.
+- Code Optimization: Refactored and optimized the `TabsBroadcast` and `TabsWorker` classes, adding detailed comments and documentation for better understanding and maintenance.
+- Event Handling Enhancements: Improved the event listener setup for primary status changes.
+- Primary-Slave Management: Added robust handling for designating and transferring primary tab status.
+- Detailed Documentation: Provided comprehensive documentation in the `readme.md` for better clarity on usage, installation, and examples.
+- Demo URL: Added a demo URL (http://tabs-broadcast.ravy.pro) for users to see the library in action.
+- Sponsorship Information: Added information on how to support the library development with a TRC20 wallet address.
+
 ## 3.0.3
 
 - Update homepage to https://ravy.pro

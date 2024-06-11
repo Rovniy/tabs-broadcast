@@ -5,7 +5,7 @@
  * @license MIT
  * @autor Andrei (Ravy) Rovnyi
  */
-import { TDefaultConfig } from './src/types';
+import { TCallbackItem, TDefaultConfig } from './src/types';
 
 export default class TabsBroadcast {
     constructor(config?: TDefaultConfig);
@@ -27,4 +27,6 @@ export default class TabsBroadcast {
     setConfig(config?: TDefaultConfig): void;
 
     destroy(): void;
+
+    getEvents(): TCallbackItem[];
 }

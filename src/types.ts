@@ -40,7 +40,7 @@ export type TConfig = {
 export interface TCallbackItem {
     type: string;
     callback: (payload: any) => void;
-    toRemove?: boolean;
+    once?: boolean;
 }
 
 /**

@@ -18,13 +18,16 @@ class x {
     this.tabId = n.tab_prefix + Date.now().toString(), this.init();
   }
   init() {
-    typeof window > "u" || (window.addEventListener("load", () => {
+    if (typeof window > "u")
+      return;
+    const t = () => {
       localStorage.getItem(n.primaryTabId) ? this.setSlaveTab(this.tabId) : this.setPrimaryTab(this.tabId), this.notifyTabStatus();
-    }), window.addEventListener("beforeunload", () => {
+    };
+    window.addEventListener("load", t), window.addEventListener("beforeunload", () => {
       this.isPrimaryTab() && this.transferPrimaryStatus(), this.removeTabStatus(this.tabId);
-    }), window.addEventListener("storage", (t) => {
-      t.key === n.primaryTabId && this.notifyTabStatus();
-    }));
+    }), window.addEventListener("storage", (a) => {
+      a.key === n.primaryTabId && this.notifyTabStatus();
+    }), t();
   }
   set(t, a) {
     localStorage.setItem(t, a);
@@ -58,21 +61,21 @@ class x {
     return this.get(n.primaryTabId) === this.tabId;
   }
 }
-var s, c, m, y, p, b, o, u, S, f, P;
-const d = class d {
+var s, d, m, y, p, b, o, u, S, f, P;
+const c = class c {
   constructor(t = null) {
     l(this, u);
     l(this, f);
     l(this, s, void 0);
-    l(this, c, void 0);
+    l(this, d, void 0);
     l(this, m, void 0);
     l(this, y, void 0);
     l(this, p, void 0);
     l(this, b, void 0);
     l(this, o, void 0);
-    if (d.instance)
-      return d.instance;
-    this.setConfig(t), v(this, u, S).call(this), d.instance = this;
+    if (c.instance)
+      return c.instance;
+    this.setConfig(t), v(this, u, S).call(this), c.instance = this;
   }
   on(t, a) {
     i(this, s).push({ type: t, callback: a });
@@ -104,17 +107,17 @@ const d = class d {
   }
   setConfig(t) {
     const a = { ..._, ...t };
-    h(this, s, []), h(this, c, a.channelName), h(this, m, a.listenOwnChannel), h(this, y, a.onBecomePrimary), h(this, p, a.emitByPrimaryOnly);
+    h(this, s, []), h(this, d, a.channelName), h(this, m, a.listenOwnChannel), h(this, y, a.onBecomePrimary), h(this, p, a.emitByPrimaryOnly);
   }
   destroy() {
-    i(this, o) && i(this, o).close(), d.instance = null, h(this, o, null);
+    i(this, o) && i(this, o).close(), c.instance = null, h(this, o, null);
   }
   getEvents() {
     return [...i(this, s)];
   }
 };
-s = new WeakMap(), c = new WeakMap(), m = new WeakMap(), y = new WeakMap(), p = new WeakMap(), b = new WeakMap(), o = new WeakMap(), u = new WeakSet(), S = function() {
-  window && (h(this, b, new x()), h(this, o, new BroadcastChannel(i(this, c))), i(this, o).onmessage = (t) => {
+s = new WeakMap(), d = new WeakMap(), m = new WeakMap(), y = new WeakMap(), p = new WeakMap(), b = new WeakMap(), o = new WeakMap(), u = new WeakSet(), S = function() {
+  window && (h(this, b, new x()), h(this, o, new BroadcastChannel(i(this, d))), i(this, o).onmessage = (t) => {
     const { type: a, payload: r } = t.data;
     h(this, s, i(this, s).filter((g) => g.type !== a || (g.callback(t.data), !g.once)));
   }, i(this, o).onmessageerror = (t) => {
@@ -125,8 +128,8 @@ s = new WeakMap(), c = new WeakMap(), m = new WeakMap(), y = new WeakMap(), p = 
     const a = t;
     this.isPrimary() && i(this, y).call(this, a.detail);
   }, { passive: !0 });
-}, T(d, "instance");
-let I = d;
+}, T(c, "instance");
+let I = c;
 export {
   I as default
 };

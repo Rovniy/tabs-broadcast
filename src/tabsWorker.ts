@@ -58,6 +58,8 @@ export class TabsWorker {
 		window.addEventListener('load', loadCb);
 		window.addEventListener('beforeunload', beforeUnloadCb);
 		window.addEventListener('storage', storageCb);
+
+		loadCb();
 	}
 
 	/**

@@ -29,7 +29,7 @@ jobs:
           sed -i "s/%version%/${tag}/g" index.html
 
       - name: Upload files via FTP
-        uses: SamKirkland/FTP-Deploy-Action@4.3.5
+        uses: SamKirkland/FTP-Deploy-Action@4.1.0
         with:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}

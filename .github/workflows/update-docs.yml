@@ -26,7 +26,7 @@ jobs:
       - name: Replace %version% in index.html
         run: |
           tag=${{ steps.extract_tag.outputs.VERSION }}
-          sed -i "s/%version%/${tag}/g" index.html
+          sed -i "s#%version%#${tag}#g" index.html
 
       - name: Upload files via FTP
         uses: SamKirkland/FTP-Deploy-Action@4.1.0

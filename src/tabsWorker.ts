@@ -45,6 +45,10 @@ export class TabsWorker {
 				this.transferPrimaryStatus();
 			}
 			this.removeTabStatus(this.tabId);
+
+			if (this.isPrimaryTab()) {
+				this.removeTabStatus(globalConfig.dict.primaryTabId);
+			}
 		};
 
 		// Callback for storage event

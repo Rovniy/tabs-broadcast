@@ -1,3 +1,7 @@
+## 3.1.8
+
+- Update Github workflow for auto-update docs
+
 ## 3.1.7
 
 - Remove primary tab key from localStorage on onBeforeUnload event

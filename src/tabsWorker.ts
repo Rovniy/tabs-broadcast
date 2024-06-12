@@ -42,13 +42,10 @@ export class TabsWorker {
 		// Callback for beforeunload event
 		const beforeUnloadCb = () => {
 			if (this.isPrimaryTab()) {
+				this.removeTabStatus(globalConfig.dict.primaryTabId);
 				this.transferPrimaryStatus();
 			}
 			this.removeTabStatus(this.tabId);
-
-			if (this.isPrimaryTab()) {
-				this.removeTabStatus(globalConfig.dict.primaryTabId);
-			}
 		};
 
 		// Callback for storage event
@@ -64,7 +61,7 @@ export class TabsWorker {
 		} else {
 			window.addEventListener('load', loadCb);
 		}
-		window.addEventListener('beforeunload', beforeUnloadCb);
+		window.addEventListener('pagehide', beforeUnloadCb);
 		window.addEventListener('storage', storageCb);
 	}
 
@@ -115,10 +112,12 @@ export class TabsWorker {
 	 * Transfers primary status to another tab if the current primary tab is closed.
 	 */
 	private transferPrimaryStatus() {
-		const tabs = Object.keys(localStorage).filter(key => key !== globalConfig.dict.primaryTabId && this.get(key) === globalConfig.dict.slave);
+		const tabs = Object
+			.keys(localStorage)
+			.filter(key => key !== globalConfig.dict.primaryTabId && this.get(key) === globalConfig.dict.slave);
 
 		if (tabs.length > 0) {
-			this.setPrimaryTab(tabs[0]);
+			this.setPrimaryTab(tabs.at(0));
 		} else {
 			this.remove(globalConfig.dict.primaryTabId);
 		}

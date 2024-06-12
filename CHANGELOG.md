@@ -1,6 +1,11 @@
+## 3.1.9
+
+- Switch beforeunload to pagehide event
+
 ## 3.1.8
 
 - Update Github workflow for auto-update docs
+
 
 ## 3.1.7
 

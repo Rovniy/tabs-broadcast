@@ -18,6 +18,18 @@ jobs:
           node-version: '20'
           registry-url: 'https://registry.npmjs.org/'
 
+      - name: Replace %version% in index.html
+        run: |
+          tag=${{ steps.extract_tag.outputs.VERSION }}
+          sed -i "s#%version%#${tag}#g" index.html
+
+      - name: Upload files via FTP
+        uses: SamKirkland/FTP-Deploy-Action@4.1.0
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+
       - name: Extract version from tag
         id: extract_tag
         run: echo "::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}"

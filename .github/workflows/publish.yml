@@ -18,6 +18,10 @@ jobs:
           node-version: '20'
           registry-url: 'https://registry.npmjs.org/'
 
+      - name: Extract version from tag
+        id: extract_tag
+        run: echo "::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}"
+
       - name: Replace %version% in index.html
         run: |
           tag=${{ steps.extract_tag.outputs.VERSION }}
@@ -29,10 +33,6 @@ jobs:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-
-      - name: Extract version from tag
-        id: extract_tag
-        run: echo "::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}"
 
       - name: Update version in package.json
         run: |

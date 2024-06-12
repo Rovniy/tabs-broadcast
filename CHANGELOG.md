@@ -1,3 +1,35 @@
+## 3.1.7
+
+- Remove primary tab key from localStorage on onBeforeUnload event
+
+## 3.1.6
+
+- Fix document.readyState event. Now support SSR mode
+
+## 3.1.5
+
+- Change http -> https in docs.
+- Fix JS paths
+- Add index.d.ts additional types
+
+## 3.1.4
+
+- Update readme.md. 
+- Add min lib files
+
+## 3.1.3
+
+- Remove `package-lock.json` from repo
+
+## 3.1.2
+
+- Bug fixes
+
+## 3.1.1
+
+- Update docs
+- Rename props
+
 ## 3.1.0
 
 - Improved TypeScript Definitions: Enhanced type definitions for event handling, ensuring proper typing for `event.detail`.

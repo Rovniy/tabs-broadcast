@@ -35,6 +35,11 @@ jobs:
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           exclude: |
+            **/.git*
+            **/.git*/**
+            **/.github*/**
+            **/src/**
             *
+            **
             !index.html
             !index.es.js

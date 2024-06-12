@@ -37,6 +37,6 @@ jobs:
           local-dir: /
           server-dir: /
           exclude: |
-            * # исключить все файлы
-            !index.html # но включить index.html
-            !index.es.js # и index.es.js
+            *
+            !index.html
+            !index.es.js

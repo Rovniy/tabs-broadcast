@@ -14,6 +14,7 @@ import type { TConfig } from './types';
 export default {
 	defaultConfig: {
 		channelName: 'xploit_tab_channel', // Broadcast channel name
+		layer: 'default_layer',
 		listenOwnChannel: true, // Listen broadcast event on current tab
 		emitByPrimaryOnly: true, // Emits event only by Primary tab
 		onBecomePrimary: () => {}, // Global event when current tab become Primary

@@ -15,9 +15,10 @@
  */
 export type TDefaultConfig = {
     channelName: string, // Broadcast channel name
-    listenOwnChannel: boolean, // Listen broadcast event on current tab
-    emitByPrimaryOnly: boolean, // Emits event only by Primary tab
-    onBecomePrimary: (payload: TEvent) => void, // Event that fired when current tab become Primary
+    layer: string,
+    listenOwnChannel?: boolean, // Listen broadcast event on current tab
+    emitByPrimaryOnly?: boolean, // Emits event only by Primary tab
+    onBecomePrimary?: (payload: TEvent) => void, // Event that fired when current tab become Primary
 }
 
 /**
@@ -35,11 +36,23 @@ export type TConfig = {
 }
 
 /**
+ * Layers used for a single channel
+ */
+export type TLayer = {
+    name: string,
+    listeners: TCallbackItem[]
+}
+export interface ILayers {
+    [key: string]: TLayer
+}
+
+/**
  * TCallbackItem represents a callback item to be executed when a specific event type is received.
  */
 export interface TCallbackItem {
     type: string;
     callback: (payload: any) => void;
+    layer?: string;
     once?: boolean;
 }
 
@@ -48,7 +61,8 @@ export interface TCallbackItem {
  */
 export type TPayload = {
     type: string,
-    payload: any
+    payload: any,
+    layer: string
 }
 
 /**

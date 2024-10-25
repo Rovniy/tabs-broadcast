@@ -44,6 +44,11 @@ export default class TabsBroadcast {
     constructor(config?: TDefaultConfig);
 
     /**
+     * Check if the current tab is the primary tab.
+     */
+    primary: boolean;
+
+    /**
      * Register a callback to be executed whenever a message of the specified type is received.
      * @param type
      * @param callback
@@ -84,6 +89,7 @@ export default class TabsBroadcast {
 
     /**
      * Check if the current tab is the primary tab.
+     * @deprecated - Use `TabBroadcast.primary` for primary tab identify
      */
     isPrimary(): boolean;
 

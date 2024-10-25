@@ -1,36 +1,30 @@
-var E = Object.defineProperty;
-var C = (e, t, a) => t in e ? E(e, t, { enumerable: !0, configurable: !0, writable: !0, value: a }) : e[t] = a;
-var f = (e, t, a) => (C(e, typeof t != "symbol" ? t + "" : t, a), a), v = (e, t, a) => {
-  if (!t.has(e))
-    throw TypeError("Cannot " + a);
+var x = Object.defineProperty;
+var E = (i) => {
+  throw TypeError(i);
 };
-var i = (e, t, a) => (v(e, t, "read from private field"), a ? a.call(e) : t.get(e)), l = (e, t, a) => {
-  if (t.has(e))
-    throw TypeError("Cannot add the same private member more than once");
-  t instanceof WeakSet ? t.add(e) : t.set(e, a);
-}, h = (e, t, a, n) => (v(e, t, "write to private field"), n ? n.call(e, a) : t.set(e, a), a);
-var w = (e, t, a) => (v(e, t, "access private method"), a);
-const _ = { channelName: "xploit_tab_channel", listenOwnChannel: !0, emitByPrimaryOnly: !0, onBecomePrimary: () => {
-} }, s = { tab_prefix: "xploit_tab_id_", slave: "xploit_slave", primary: "xploit_primary", primaryTabId: "xploit_primary_tab_id", primaryStatusChanged: "XPLOIT_TAB_STATUS_CHANGED" };
-class x {
+var B = (i, t, e) => t in i ? x(i, t, { enumerable: !0, configurable: !0, writable: !0, value: e }) : i[t] = e;
+var w = (i, t, e) => B(i, typeof t != "symbol" ? t + "" : t, e), I = (i, t, e) => t.has(i) || E("Cannot " + e);
+var s = (i, t, e) => (I(i, t, "read from private field"), e ? e.call(i) : t.get(i)), d = (i, t, e) => t.has(i) ? E("Cannot add the same private member more than once") : t instanceof WeakSet ? t.add(i) : t.set(i, e), c = (i, t, e, a) => (I(i, t, "write to private field"), a ? a.call(i, e) : t.set(i, e), e), y = (i, t, e) => (I(i, t, "access private method"), e);
+const u = { channelName: "xploit_tab_channel", layer: "default_layer", listenOwnChannel: !0, emitByPrimaryOnly: !0, onBecomePrimary: () => {
+} }, l = { tab_prefix: "xploit_tab_id_", slave: "xploit_slave", primary: "xploit_primary", primaryTabId: "xploit_primary_tab_id", primaryStatusChanged: "XPLOIT_TAB_STATUS_CHANGED" };
+class N {
   constructor() {
-    f(this, "tabId");
-    this.tabId = s.tab_prefix + Date.now().toString(), this.init();
+    w(this, "tabId");
+    this.tabId = l.tab_prefix + Date.now().toString(), this.init();
   }
   init() {
-    if (typeof window > "u")
-      return;
+    if (typeof window > "u") return;
     const t = () => {
-      localStorage.getItem(s.primaryTabId) ? this.setSlaveTab(this.tabId) : this.setPrimaryTab(this.tabId), this.notifyTabStatus();
+      localStorage.getItem(l.primaryTabId) ? this.setSlaveTab(this.tabId) : this.setPrimaryTab(this.tabId), this.notifyTabStatus();
     };
     document.readyState === "complete" ? t() : window.addEventListener("load", t), window.addEventListener("pagehide", () => {
-      this.isPrimaryTab() && (this.removeTabStatus(s.primaryTabId), this.transferPrimaryStatus()), this.removeTabStatus(this.tabId);
-    }), window.addEventListener("storage", (a) => {
-      a.key === s.primaryTabId && this.notifyTabStatus();
+      this.isPrimaryTab() && (this.removeTabStatus(l.primaryTabId), this.transferPrimaryStatus()), this.removeTabStatus(this.tabId);
+    }), window.addEventListener("storage", (e) => {
+      e.key === l.primaryTabId && this.notifyTabStatus();
     });
   }
-  set(t, a) {
-    localStorage.setItem(t, a);
+  set(t, e) {
+    localStorage.setItem(t, e);
   }
   get(t) {
     return localStorage.getItem(t);
@@ -39,98 +33,104 @@ class x {
     localStorage.removeItem(t);
   }
   setPrimaryTab(t) {
-    this.set(s.primaryTabId, t), this.set(t, s.primary);
+    this.set(l.primaryTabId, t), this.set(t, l.primary);
   }
   setSlaveTab(t) {
-    this.set(t, s.slave);
+    this.set(t, l.slave);
   }
   transferPrimaryStatus() {
-    const t = Object.keys(localStorage).filter((a) => a !== s.primaryTabId && this.get(a) === s.slave);
-    t.length > 0 ? this.setPrimaryTab(t.at(0)) : this.remove(s.primaryTabId);
+    const t = Object.keys(localStorage).filter((e) => e !== l.primaryTabId && this.get(e) === l.slave);
+    t.length > 0 ? this.setPrimaryTab(t.at(0)) : this.remove(l.primaryTabId);
   }
   removeTabStatus(t) {
     this.remove(t);
   }
   notifyTabStatus() {
-    if (typeof window > "u")
-      return;
+    if (typeof window > "u") return;
     const t = { detail: { tabId: this.tabId, isPrimary: this.isPrimaryTab() } };
-    window.dispatchEvent(new CustomEvent(s.primaryStatusChanged, t));
+    window.dispatchEvent(new CustomEvent(l.primaryStatusChanged, t));
   }
   isPrimaryTab() {
-    return this.get(s.primaryTabId) === this.tabId;
+    return this.get(l.primaryTabId) === this.tabId;
   }
 }
-var r, m, c, y, p, b, o, u, I, g, P;
-const d = class d {
+var f, g, T, v, b, h, r, n, C, O, m, k, L;
+const p = class p {
   constructor(t = null) {
-    l(this, u);
-    l(this, g);
-    l(this, r, void 0);
-    l(this, m, void 0);
-    l(this, c, void 0);
-    l(this, y, void 0);
-    l(this, p, void 0);
-    l(this, b, void 0);
-    l(this, o, void 0);
-    if (d.instance)
-      return d.instance;
-    this.setConfig(t), w(this, u, I).call(this), d.instance = this;
+    d(this, n);
+    d(this, f);
+    d(this, g);
+    d(this, T);
+    d(this, v);
+    d(this, b);
+    d(this, h);
+    d(this, r);
+    w(this, "primary", !1);
+    if (p.instance) return p.instance;
+    this.setConfig(t), y(this, n, C).call(this), p.instance = this;
   }
-  on(t, a) {
-    i(this, r).push({ type: t, callback: a });
+  on(t, e, a) {
+    y(this, n, m).call(this, a).listeners.push({ type: t, callback: e });
   }
   onList(t) {
-    t.length && t.forEach(([a, n]) => {
-      a && n && i(this, r).push({ type: a, callback: n });
+    t.length && t.forEach(([e, a, o]) => {
+      e && a && y(this, n, m).call(this, o).listeners.push({ type: e, callback: a });
     });
   }
-  once(t, a) {
-    i(this, r).push({ type: t, callback: a, once: !0 });
+  once(t, e, a) {
+    y(this, n, m).call(this, a).listeners.push({ type: t, callback: e, once: !0 });
   }
   onceList(t) {
-    t.length && t.forEach(([a, n]) => {
-      a && n && i(this, r).push({ type: a, callback: n, once: !0 });
+    t.length && t.forEach(([e, a, o = u.layer]) => {
+      e && a && y(this, n, m).call(this, o).listeners.push({ type: e, callback: a, once: !0 });
     });
   }
-  off(t) {
-    h(this, r, i(this, r).filter((a) => a.type !== t));
+  off(t, e = null) {
+    if (e) s(this, r)[e].listeners.filter((a) => a.type !== t);
+    else for (const a in s(this, r)) s(this, r)[a].listeners.filter((o) => o.type !== t);
   }
-  emit(t, a = null) {
-    if (i(this, p) && !this.isPrimary() || !i(this, o))
-      return;
-    const n = { type: t, payload: a };
-    i(this, o).postMessage(n), i(this, c) && i(this, o).onmessage({ data: n });
+  deleteLayer(t) {
+    y(this, n, m).call(this, t).listeners = [], s(this, r)[t] = null, delete s(this, r)[t];
+  }
+  emit(t, e = null, a = u.layer) {
+    if (s(this, v) && !s(this, b).isPrimaryTab() || !s(this, h)) return;
+    const o = { type: t, payload: e, layer: a };
+    s(this, h).postMessage(o), s(this, g) && s(this, h).onmessage({ data: o });
   }
   isPrimary() {
-    return i(this, b).isPrimaryTab();
+    return s(this, b).isPrimaryTab();
   }
   setConfig(t) {
-    const a = { ..._, ...t };
-    h(this, r, []), h(this, m, a.channelName), h(this, c, a.listenOwnChannel), h(this, y, a.onBecomePrimary), h(this, p, a.emitByPrimaryOnly);
+    const e = { ...u, ...t };
+    c(this, f, e.channelName), c(this, r, {}), c(this, g, e.listenOwnChannel), c(this, T, e.onBecomePrimary), c(this, v, e.emitByPrimaryOnly);
   }
   destroy() {
-    i(this, o) && i(this, o).close(), d.instance = null, h(this, o, null);
+    s(this, h) && s(this, h).close(), p.instance = null, c(this, h, null);
   }
   getEvents() {
-    return [...i(this, r)];
+    return Object.keys(s(this, r)).length === 1 && s(this, r)[u.layer] ? [...s(this, r)[u.layer].listeners] : Object.values(s(this, r)).reduce((t, e) => t = [...t, ...e.listeners], []);
+  }
+  getLayers() {
+    return Object.keys(s(this, r));
   }
 };
-r = new WeakMap(), m = new WeakMap(), c = new WeakMap(), y = new WeakMap(), p = new WeakMap(), b = new WeakMap(), o = new WeakMap(), u = new WeakSet(), I = function() {
-  window && (h(this, b, new x()), h(this, o, new BroadcastChannel(i(this, m))), i(this, o).onmessage = (t) => {
-    const { type: a, payload: n } = t.data;
-    h(this, r, i(this, r).filter((T) => T.type !== a || (T.callback(t.data), !T.once)));
-  }, i(this, o).onmessageerror = (t) => {
-    process.env.NODE_ENV !== "production" && console.error("Can't parse message", t);
-  }, w(this, g, P).call(this));
-}, g = new WeakSet(), P = function() {
-  window.addEventListener(s.primaryStatusChanged, (t) => {
-    const a = t;
-    this.isPrimary() && i(this, y).call(this, a.detail);
+f = new WeakMap(), g = new WeakMap(), T = new WeakMap(), v = new WeakMap(), b = new WeakMap(), h = new WeakMap(), r = new WeakMap(), n = new WeakSet(), C = function() {
+  window && (c(this, b, new N()), c(this, h, new BroadcastChannel(s(this, f))), s(this, h).onmessage = y(this, n, k).bind(this), s(this, h).onmessageerror = y(this, n, L).bind(this), this.primary = !1, y(this, n, O).call(this));
+}, O = function() {
+  window.addEventListener(l.primaryStatusChanged, (t) => {
+    const e = t;
+    s(this, b).isPrimaryTab() ? (this.primary = !0, s(this, T).call(this, e.detail)) : this.primary = !1;
   }, { passive: !0 });
-}, f(d, "instance");
-let S = d;
+}, m = function(t = u.layer) {
+  return s(this, r)[t] || (s(this, r)[t] = { name: t, listeners: [] }), s(this, r)[t];
+}, k = function(t) {
+  const { type: e, payload: a, layer: o } = t.data, P = y(this, n, m).call(this, o);
+  P.listeners = P.listeners.filter((S) => S.type !== e || (S.callback({ type: e, payload: a, layer: o }), !S.once));
+}, L = function(t) {
+  process.env.NODE_ENV !== "production" && console.error("Can't parse message", t);
+}, w(p, "instance");
+let _ = p;
 export {
-  S as default
+  _ as default
 };
 //# sourceMappingURL=index.es.js.map

@@ -116,8 +116,9 @@
         </pre>
 
         <div id="tabStatus" class="tab-status">Loading...</div>
-        <button id="sendEvent" class="event-button">Increase by event</button>
-        <button id="sendEventPayload" class="event-button">Increase with payload</button>
+        <button id="sendEvent" class="event-button">Simple (+1)</button>
+        <button id="sendEventPayload" class="event-button">Payload (+5)</button>
+        <button id="sendEventLayer" class="event-button">Layer (+10)</button>
 
         <div class="event-counter">
             Counter: <span id="counterData">0</span>
@@ -158,14 +159,17 @@
         const slaveName = 'Slave tab (Doesn\'t send events)';
         const primaryClassName = 'primary';
         const slaveClassname = 'slave';
+        const appLayer = 'APP_LAYER_0';
 
         const tabStatusText = document.querySelector('#tabStatus');
         const sendEventBtn = document.querySelector('#sendEvent');
         const sendEventPayloadBtn = document.querySelector('#sendEventPayload');
+        const sendEventLayerBtn = document.querySelector('#sendEventLayer');
         const counterData = document.querySelector('#counterData');
 
         sendEventBtn.disabled = true;
         sendEventPayloadBtn.disabled = true;
+        sendEventLayerBtn.disabled = true;
         tabStatusText.classList.add(slaveClassname);
 
         const tabsBroadcast = new TabsBroadcast({
@@ -176,17 +180,20 @@
 
                 sendEventBtn.disabled = false;
                 sendEventPayloadBtn.disabled = false;
+                sendEventLayerBtn.disabled = false;
             }
         });
-		window.asd = tabsBroadcast
 
-        tabStatusText.innerHTML = tabsBroadcast.isPrimary() ? primaryName : slaveName;
+        tabStatusText.innerHTML = tabsBroadcast.primary ? primaryName : slaveName;
 
         sendEventBtn.addEventListener('click', () => {
             tabsBroadcast.emit('INCREASE_BY_EVENT');
         });
         sendEventPayloadBtn.addEventListener('click', () => {
-            tabsBroadcast.emit('INCREASE_BY_EVENT_PAYLOAD', { increase: 10 });
+            tabsBroadcast.emit('INCREASE_BY_EVENT_PAYLOAD', { increase: 5 });
+        });
+        sendEventLayerBtn.addEventListener('click', () => {
+            tabsBroadcast.emit('INCREASE_BY_LAYER', { increase: 10 }, appLayer);
         });
 
         const callback = data => {
@@ -201,6 +208,7 @@
         tabsBroadcast.onList([
             [ 'INCREASE_BY_EVENT', callback ],
             [ 'INCREASE_BY_EVENT_PAYLOAD', callback ],
+            [ 'INCREASE_BY_LAYER', callback, appLayer ],
         ]);
     </script>
 </body>

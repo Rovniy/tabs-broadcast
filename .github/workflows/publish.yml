@@ -27,7 +27,7 @@ jobs:
           tag=${{ steps.extract_tag.outputs.VERSION }}
           sed -i "s#%version%#${tag}#g" index.html
 
-      - name: Upload files via FTP
+      - name: Upload files to https://tabs-broadcast.ravy.pro
         uses: SamKirkland/FTP-Deploy-Action@4.1.0
         with:
           server: ${{ secrets.FTP_SERVER }}

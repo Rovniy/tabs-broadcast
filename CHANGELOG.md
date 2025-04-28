@@ -1,13 +1,33 @@
-## 3.2.2
+## [3.2.3] - 04/28/2025
+
+### Added
+- **TypeScript Support**: Added comprehensive type definitions via `index.d.ts` for full type safety and IDE autocompletion.
+- **Wildcard Listeners (`*`)**: Now you can listen to all events in a specific layer by using the `*` wildcard in the `on` method.
+- **Emit to Multiple Layers**: The `emit` method now allows targeting multiple layers at once by passing an array of layer names.
+- **Plugin System**: Introduced a `use` method to register plugins and extend the functionality of TabsBroadcast.
+- **Destroy Delay**: The `destroy` method now supports an optional delay parameter, allowing deferred cleanup.
+
+### Changed
+- Enhanced the `on`, `off`, and `once` methods to support event handling within specific layers.
+- The `isPrimary` method is now **deprecated**. Use the `primary` property for checking primary tab status.
+
+### Fixed
+- Minor bug fixes and optimizations for inter-tab communication stability.
+
+### Documentation
+
+- Add additional demo functionality
+
+## [3.2.2] - 04/25/2025
 
 - Fix pack issue
 
-## 3.2.1
+## [3.2.1]
 
 - Vite version change to ^6.3.3
 - Update readme
 
-## 3.2.0
+## [3.2.0]
 
 ### Layer Support
 Added the concept of layers to enhance event handling. Events can now be grouped and isolated by layers, allowing for better separation and control in applications with micro-frontends or multiple components.
@@ -40,51 +60,51 @@ Added the concept of layers to enhance event handling. Events can now be grouped
 
 This version represents a major upgrade with layer-based event handling and improved Primary-Slave management. We recommend upgrading to leverage these new features, especially for applications with complex inter-tab communication or multi-frontend architectures.
 
-## 3.1.10
+## [3.1.10]
 
 - Switch beforeunload to pagehide event
 
-## 3.1.9
+## [3.1.9]
 
 - Change Github actions
 
-## 3.1.8
+## [3.1.8]
 
 - Update Github workflow for auto-update docs
 
-## 3.1.7
+## [3.1.7]
 
 - Remove primary tab key from localStorage on onBeforeUnload event
 
-## 3.1.6
+## [3.1.6]
 
 - Fix document.readyState event. Now support SSR mode
 
-## 3.1.5
+## [3.1.5]
 
 - Change http -> https in docs.
 - Fix JS paths
 - Add index.d.ts additional types
 
-## 3.1.4
+## [3.1.4]
 
 - Update readme.md. 
 - Add min lib files
 
-## 3.1.3
+## [3.1.3]
 
 - Remove `package-lock.json` from repo
 
-## 3.1.2
+## [3.1.2]
 
 - Bug fixes
 
-## 3.1.1
+## [3.1.1]
 
 - Update docs
 - Rename props
 
-## 3.1.0
+## [3.1.0]
 
 - Improved TypeScript Definitions: Enhanced type definitions for event handling, ensuring proper typing for `event.detail`.
 - Singleton Pattern: Ensured `TabsBroadcast` maintains a single instance across the application.
@@ -95,20 +115,20 @@ This version represents a major upgrade with layer-based event handling and impr
 - Demo URL: Added a demo URL (http://tabs-broadcast.ravy.pro) for users to see the library in action.
 - Sponsorship Information: Added information on how to support the library development with a TRC20 wallet address.
 
-## 3.0.3
+## [3.0.3]
 
 - Update homepage to https://ravy.pro
 
-## 3.0.2
+## [3.0.2]
 
 - [fix] Update README.md for support LIST subscribes. Again
 - Update jsDocs
 
-## 3.0.1
+## [3.0.1]
 
 - [fix] Update README.md for support LIST subscribes
 
-## 3.0.0
+## [3.0.0]
 
 - `TabsBroadcast` is now a constructor instead of a class instance.
 - Added a new method `destroy` for closing opened broadcast channels.

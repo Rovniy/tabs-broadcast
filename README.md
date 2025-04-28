@@ -10,16 +10,20 @@
 
 TabsBroadcast is a library for managing inter-tab communication via the BroadcastChannel API. It implements a singleton pattern to ensure a single instance and allows for registering, emitting, and handling various types of events across different browser tabs. The library also manages primary and slave tabs, ensuring that only one tab is designated as the primary tab, which can perform certain tasks exclusively.
 
+---
+
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
+---
 
 ## Author
 
 - Andrei (Ravy) Rovnyi
 - [contact@ravy.pro](contact@ravy.pro)
 
+---
 ## Features
 
 - Singleton pattern to ensure a single instance.
@@ -28,12 +32,17 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 - Event registration and handling.
 - Emit messages to all tabs or only from the primary tab.
 - Configurable settings.
+- Extensible through plugins.
+
+---
 
 ## Demo
 
 You can access the live demo at the following URL:
 
 [TabsBroadcast Demo](https://tabs-broadcast.ravy.pro)
+
+---
 
 ## Installation
 
@@ -55,6 +64,8 @@ or
 bun install tabs-broadcast
 ```
 
+---
+
 ## Usage
 To use the library, import the **TabsBroadcast** class and initialize it:
 
@@ -74,6 +85,8 @@ const tabsBroadcast = new TabsBroadcast();
 - `emitByPrimaryOnly`: Whether only the primary tab can emit messages.
 
 *To work within the same application with micro-frontends or apps, use the same `channelName`*
+
+---
 
 ## Core concept
 
@@ -128,9 +141,15 @@ Layers allow you to divide events within a single application into topics, assig
 
 Using layers improves library performance by reducing the number of iterations, and also saves memory consumption.
 
+---
+
 ## TypeScript Support
 
 This library fully supports TypeScript, providing type definitions for seamless integration with TypeScript projects. TypeScript users can leverage static typing to catch errors early in the development process and benefit from improved code editor support, including auto-completion and type checking.
+
+The library includes a `index.d.ts` file for full type definition support.
+
+---
 
 ## Methods
 
@@ -142,6 +161,14 @@ tabsBroadcast.on('eventType', (data) => {
 });
 ```
 
+You can now use the wildcard (`*`) listener to capture **all events** in a specific layer. This is useful when you need to log, monitor, or debug all activity in a layer.
+
+```javascript
+tabsBroadcast.on('*', (event) => {
+    console.log(`Captured wildcard event:`, event);
+}, 'APP_LAYER_0');
+```
+
 You can specify a layer to isolate the events from each other. The trigger will be triggered only if the specified event is passed to a specific layer
 ```javascript
 tabsBroadcast.on('eventType', (data) => {
@@ -149,7 +176,7 @@ tabsBroadcast.on('eventType', (data) => {
 }, 'APP_LAYER_0');
 ```
 
-<hr>
+---
 
 ### `onList(list: Array<[string, Function, layer]>): void`
 Register multiple callbacks to be executed whenever messages of specified types are received.
@@ -161,7 +188,7 @@ tabsBroadcast.onList([
 ]);
 ```
 
-<hr>
+---
 
 ### `once(message: string, callback: (data: any) => void, layer?: string): void`
 Register a callback to be executed only once when a message of the specified type is received.
@@ -177,7 +204,7 @@ tabsBroadcast.once('eventType', (data) => {
 }, 'APP_LAYER_0');
 ```
 
-<hr>
+---
 
 ### `onceList(list: Array<[string, Function, string]>): void`
 Register multiple callbacks to be executed one-time when messages of specified types are received.
@@ -189,7 +216,7 @@ tabsBroadcast.onceList([
 ]);
 ```
 
-<hr>
+---
 
 ### `off(message: string, layer?: string): void`
 Unregister all callbacks of the specified type.
@@ -202,7 +229,7 @@ You can specify a specific layer from which the event should be deleted. If you 
 tabsBroadcast.off('eventType', 'APP_LAYER_0');
 ```
 
-<hr>
+---
 
 ### `emit(message: string, data?: any, layer?: string): void`
 Emit a message to all listening tabs with the specified type and payload.
@@ -215,7 +242,12 @@ tabsBroadcast.emit('eventType', 'Hello Worlds', 'APP_LAYER_3');
 ```
 *You can specify a specific layer in which to send events. It is a good practice when the layers are inherently separated*
 
-<hr>
+The `emit` method supports sending messages to multiple layers simultaneously:
+```javascript
+tabsBroadcast.emit('eventType', { id: 1 }, [ 'APP_LAYER_0', 'APP_LAYER_3' ]);
+```
+
+---
 
 ### `setConfig(config: TDefaultConfig): void`
 Set custom configuration properties.
@@ -228,31 +260,39 @@ tabsBroadcast.setConfig({
 });
 ```
 
-<hr>
+---
 
 ### `destroy(): void`
-Destroy the **BroadcastChannel**. Messages will no longer be received.
+The `destroy` method clears all registered listeners, deletes all layers, and releases the BroadcastChannel. Additionally, you can specify an optional delay (in milliseconds) before destruction:
 ```javascript
-tabsBroadcast.destroy();
+// Destroy resources with a delay (500ms)
+await tabsBroadcast.destroy(500);
+
+// Destroy resources immediately
+await tabsBroadcast.destroy();
 ```
 
-<hr>
+---
 
 ### `getEvents() : TCallbackItem[]`
 Receive a copy of the registered events list.
 ```javascript
 const events = tabsBroadcast.getEvents();
+
 console.log('Registered events:', events);
 ```
 
-<hr>
+---
 
 ### `getLayers() : string[]`
 Receive a list of the using layers.
 ```javascript
 const layers = tabsBroadcast.getLayers();
+
 console.log('Using layers:', layers);
 ```
+
+---
 
 ## Static properties
 
@@ -264,6 +304,96 @@ if (tabsBroadcast.primary) {
 }
 ```
 
+---
+
+## Plugins
+
+TabsBroadcast supports **plugins** to extend its functionality. You can use the `use` method to load plugins.
+
+### Creating a Plugin
+
+A plugin is a function that receives the `TabsBroadcast` instance as a parameter and extends it with new methods or logic.
+
+#### Example: Plugin for Emitting Events to All Layers
+
+```javascript
+const emitToAllLayersPlugin = (instance) => {
+    instance['emitToAllLayers'] = function (type, payload) {
+        const allLayers = Object.keys(this.#layers);
+        this.emit(type, payload, allLayers);
+    };
+};
+
+// Use the plugin
+const tabsBroadcast = new TabsBroadcast();
+tabsBroadcast.use(emitToAllLayersPlugin);
+
+// Emit an event to all existing layers
+tabsBroadcast['emitToAllLayers']('globalEvent', { synced: true });
+```
+
+---
+
+### Example: Plugin for Auto Logging
+
+This plugin automatically logs all emitted and received messages to the console:
+
+```javascript
+const autoLogPlugin = (instance) => {
+    const originalEmit = instance.emit;
+
+    // Extend emit to log outgoing events
+    instance.emit = function (type, payload, layers) {
+        console.log(`[LOG] Emitting event: ${type}`, payload, layers);
+        originalEmit.call(this, type, payload, layers);
+    };
+
+    // Register wildcard listeners for all layers
+    Object.keys(instance.#layers).forEach(layer => {
+        instance.on('*', (event) => {
+            console.log(`[LOG] Event received in layer ${layer}:`, event);
+        }, layer);
+    });
+};
+
+// Use the plugin
+const tabsBroadcast = new TabsBroadcast();
+tabsBroadcast.use(autoLogPlugin);
+
+// Test emitting events
+tabsBroadcast.emit('testEvent', { foo: 'bar' }, 'APP_LAYER_0');
+```
+
+---
+
+### Example: Notification Plugin
+
+This plugin displays a notification whenever an event is emitted:
+
+```javascript
+const notificationPlugin = (instance) => {
+    instance['notifyOnEmit'] = function (message) {
+        const originalEmit = this.emit;
+        this.emit = function (type, payload, layers) {
+            alert(`Notification: ${message}`);
+            originalEmit.call(this, type, payload, layers);
+        };
+    };
+};
+
+// Use the plugin
+const tabsBroadcast = new TabsBroadcast();
+tabsBroadcast.use(notificationPlugin);
+
+// Enable notifications
+tabsBroadcast['notifyOnEmit']('New event emitted!');
+
+// Emit an event (triggers a browser alert)
+tabsBroadcast.emit('customEvent', { myData: 42 }, 'APP_LAYER_0');
+```
+
+---
+
 ## Sponsorship and Support
 
 If you have found this library useful and would like to support its continued development and maintenance, you can make a donation to the following USDT (TRC20) wallet address:
@@ -272,7 +402,7 @@ If you have found this library useful and would like to support its continued de
 TUe94e4q3hm5JRYRsNiS8ZbEJC7MNzULDi
 ```
 
-Your donation will directly contribute to improving functionality, bug fixes, and ensuring long-term support for this library. Thank you for your support!
+Your donation will directly contribute to improving functionality, bug fixes, and ensuring long-term support for this library. Thank you for your support! 🚀
 <hr>
 
 ![Ravy.pro](https://badgen.net/static/XPLOIT/RAVY/fa4c28)

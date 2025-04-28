@@ -74,3 +74,5 @@ export type TEvent = {
         isPrimary: boolean
     }
 }
+
+export type TWildcardEvent = '*'

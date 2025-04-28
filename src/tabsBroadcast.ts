@@ -10,7 +10,9 @@
  */
 import globalConfig from './config'
 import { TabsWorker } from './tabsWorker'
-import {ILayers, TDefaultConfig, TEvent, TLayer, TPayload} from './types';
+import {ILayers, TDefaultConfig, TEvent, TLayer, TWildcardEvent, TPayload} from './types';
+
+const WILDCARD_EVENT = '*'
 
 /**
  * TabsBroadcast class facilitates inter-tab communication using the BroadcastChannel API.
@@ -99,7 +101,7 @@ export class TabsBroadcast {
         const _l = this.#checkOrCreateLayer(layer);
 
         _l.listeners = _l.listeners.filter(item => {
-            if (item.type === type) {
+            if (item.type === type || item.type === WILDCARD_EVENT) {
                 item.callback({ type, payload, layer });
 
                 return !item.once;
@@ -122,14 +124,15 @@ export class TabsBroadcast {
 
     /**
      * Register a callback to be executed whenever a message of the specified type is received.
+     * And register a wildcard listener for all event types.
      * @param {string} type - The type of the message.
-     * @param {function} callback - The function to execute when a message of the specified type is received.
+     * @param {Function} callback - The function to execute when a message of the specified type is received.
      * @param {string} layer - The name of the layer to which the message is addressed.
      */
-    on(type: string, callback: () => void, layer: string) {
+    on(type: string | TWildcardEvent, callback: (event: TEvent) => void, layer: string = globalConfig.defaultConfig.layer) {
         this.#checkOrCreateLayer(layer)
             .listeners
-            .push({ type, callback })
+            .push({ type, callback, once: false });
     }
 
     /**
@@ -205,22 +208,28 @@ export class TabsBroadcast {
 
     /**
      * Emit a message to all listening tabs with the specified type, payload and layer.
-     * @param {string} type - The type of the message.
-     * @param {*} [payload=null] - The payload of the message.
-     * @param {string} [layer] - The name of the layer to which the message is addressed.
+     * @param {string} type - The type of the event.
+     * @param {*} payload - The payload to send with the event.
+     * @param {string | string[]} layers - A single layer name or an array of layer names.
      */
-    emit(type: string, payload: any = null, layer: string = globalConfig.defaultConfig.layer) {
+    emit(type: string, payload: any = null, layers: string | string[] = globalConfig.defaultConfig.layer) {
         if (this.#emitByPrimaryOnly && !this.#worker.isPrimaryTab()) return;
-
         if (!this.#channel) return;
 
-        const message: TPayload = { type, payload, layer };
-        this.#channel.postMessage(message);
+        const targetLayers = Array.isArray(layers) ? layers : [layers];
 
-        if (this.#listenOwnChannel) {
-            // @ts-ignore
-            this.#channel.onmessage({ data: message });
-        }
+        // Emit event for each target layer
+        targetLayers.forEach(layer => {
+            this.#checkOrCreateLayer(layer);
+
+            const message: TPayload = { type, payload, layer };
+            this.#channel.postMessage(message);
+
+            if (this.#listenOwnChannel) {
+                // @ts-ignore
+                this.#channel.onmessage({ data: message });
+            }
+        });
     }
 
     /**
@@ -250,19 +259,41 @@ export class TabsBroadcast {
     }
 
     /**
-     * Destroy the BroadcastChannel. Messages will no longer be received.
+     * Destroys the BroadcastChannel and cleans up resources.
+     * @param {number} delay - The optional delay (in milliseconds) before destruction begins.
      */
-    destroy() {
-        if (this.#channel) {
-            this.#channel.close();
-        }
+    async destroy(delay: number = 0) : Promise<void> {
+        try {
+            if (delay > 0) {
+                await new Promise(resolve => setTimeout(resolve, delay));
+            }
 
-        TabsBroadcast.instance = null;
-        this.#channel = null;
+            if (this.#channel) {
+                this.#channel.close();
+                this.#channel = null;
+            }
+
+            if (this.#layers) {
+                Object.keys(this.#layers).forEach(layerKey => {
+                    this.#layers[layerKey].listeners = [];
+                });
+
+                this.#layers = {};
+            }
+
+            TabsBroadcast.instance = null;
+        } catch (error) {
+            console.error('TabsBroadcast: Error while destroying instance:', error);
+        }
     }
 
+
     /**
-     * Receive copy of events list
+     * Retrieves a list of event listeners from the layers.
+     *
+     * @return {Array} An array of event listener objects. If there is only one default layer,
+     *                 returns the listeners from that layer. Otherwise, aggregates listeners
+     *                 from all layers.
      */
     getEvents() {
         const isOnlyDefaultLayer = Object.keys(this.#layers).length === 1 && this.#layers[globalConfig.defaultConfig.layer];
@@ -278,9 +309,19 @@ export class TabsBroadcast {
     }
 
     /**
-     * Get a list of all available layers
+     * Retrieves the list of layer names.
+     *
+     * @return {string[]} An array of strings representing the keys of the layers.
      */
     getLayers() : string[] {
         return Object.keys(this.#layers)
+    }
+
+    /**
+     * Enable plugins for extending the library.
+     * @param {Function} plugin - Plugin function to extend the TabsBroadcast instance.
+     */
+    use(plugin: (instance: TabsBroadcast) => void) {
+        plugin(this);
     }
 }

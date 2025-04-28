@@ -9,3 +9,4 @@ index.html
 package-lock.json
 tsconfig.json
 vite.config.js
+.ftp-deploy-sync-state.json

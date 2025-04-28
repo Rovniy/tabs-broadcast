@@ -5,3 +5,4 @@ node_modules
 package-lock.json
 .env
 event.json
+.ftp-deploy-sync-state.json

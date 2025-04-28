@@ -266,10 +266,10 @@ if (tabsBroadcast.primary) {
 
 ## Sponsorship and Support
 
-If you have found this library useful and would like to support its continued development and maintenance, you can make a donation to the following TRC20 wallet address:
+If you have found this library useful and would like to support its continued development and maintenance, you can make a donation to the following USDT (TRC20) wallet address:
 
 ```text
-TFWHdvkHs78jrANbyYfAy6JaXVVfKQiwjv
+TUe94e4q3hm5JRYRsNiS8ZbEJC7MNzULDi
 ```
 
 Your donation will directly contribute to improving functionality, bug fixes, and ensuring long-term support for this library. Thank you for your support!

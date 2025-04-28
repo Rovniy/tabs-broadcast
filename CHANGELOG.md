@@ -1,3 +1,45 @@
+## 3.2.2
+
+- Fix pack issue
+
+## 3.2.1
+
+- Vite version change to ^6.3.3
+- Update readme
+
+## 3.2.0
+
+### Layer Support
+Added the concept of layers to enhance event handling. Events can now be grouped and isolated by layers, allowing for better separation and control in applications with micro-frontends or multiple components.
+
+- Usage: Specify a layer when emitting or registering an event (on, once, emit). Events will trigger only within their designated layer.
+- Performance Optimization: Using layers reduces memory usage and iteration counts in large-scale applications.
+
+### Primary-Slave Tab Management:
+- Improved to ensure consistent behavior across multiple tabs.
+- Primary tab status is now accessible directly as a static property (primary) for easier checking without a separate method call.
+
+### TypeScript Enhancements:
+- Added more precise type definitions, improving integration with TypeScript projects.
+- New TypeScript support provides better editor auto-completion and error detection, facilitating a smoother development experience.
+
+### Updated Methods
+- Extended on, once, onList, onceList, off, and emit: Each method now includes an optional layer parameter to designate event isolation by layer. This allows users to assign and listen to events in separate layers within the same application context.
+
+### Config Updates
+- Refined Configuration Options: channelName, listenOwnChannel, and emitByPrimaryOnly are now fully compatible with the new layer functionality, allowing multiple isolated instances in micro-frontend environments by simply setting the desired channelName.
+
+### Improved Documentation
+
+- Updated README to include comprehensive examples for all methods, configuration, and layer-based usage.
+- Enhanced explanations on the benefits and use cases of the Primary-Slave model, including examples of how layers can be used to optimize communication across micro-frontends.
+
+### Bug Fixes
+- Context Preservation in Event Listeners: Fixed an issue where certain private methods were not correctly bound, causing errors in some browsers. All event listeners now maintain the correct class context.
+- Improved Memory Management: Addressed a memory leak by ensuring BroadcastChannel instances are properly destroyed when calling destroy().
+
+This version represents a major upgrade with layer-based event handling and improved Primary-Slave management. We recommend upgrading to leverage these new features, especially for applications with complex inter-tab communication or multi-frontend architectures.
+
 ## 3.1.10
 
 - Switch beforeunload to pagehide event

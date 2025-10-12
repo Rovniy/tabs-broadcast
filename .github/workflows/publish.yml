@@ -54,5 +54,5 @@ jobs:
         run: |
           LAST_COMMIT_MESSAGE=$(git log -1 --pretty=%B)
           curl -s -X POST -H "Content-Type: application/json" \
-            -d "{\"content\": \"💡 [XPLOIT Games](https://xploit.games) : Successfully deployed! Commit: **$LAST_COMMIT_MESSAGE**\"}" \
+            -d "{\"content\": \"💡 [Tabs Broadcast](https://www.npmjs.com/package/tabs-broadcast) : Successfully deployed! Commit: **$LAST_COMMIT_MESSAGE**\"}" \
             ${{ secrets.DISCORD_WEBHOOK_URL }}

@@ -2,7 +2,7 @@
 
 ![License](https://badgen.net/github/license/rovniy/tabs-broadcast)
 ![Stars](https://badgen.net/github/stars/rovniy/tabs-broadcast)
-![GitHub file size in bytes](https://img.shields.io/github/size/Rovniy/tabs-broadcast/index.es.js)
+![GitHub file size in bytes](https://img.shields.io/github/size/Rovniy/tabs-broadcast/dist/tabs-broadcast.es.js)
 ![Latest tag](https://badgen.net/github/tag/Rovniy/tabs-broadcast)
 ![Repo depends](https://badgen.net/github/dependents-repo/Rovniy/tabs-broadcast)
 ![Pckg depends](https://badgen.net/github/dependents-pkg/Rovniy/tabs-broadcast)

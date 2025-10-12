@@ -25,7 +25,7 @@ jobs:
       - name: Replace %version% in index.html
         run: |
           tag=${{ steps.extract_tag.outputs.VERSION }}
-          sed -i "s#%version%#${tag}#g" example/index.html
+          sed -i "s#%version%#${tag}#g" index.html
 
       - name: Upload files to https://tabs-broadcast.ravy.pro
         uses: SamKirkland/FTP-Deploy-Action@4.1.0

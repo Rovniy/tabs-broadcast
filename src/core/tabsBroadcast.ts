@@ -1,5 +1,5 @@
 /**
- * @file TabsBroadcast.ts
+ * @file tabsBroadcast.ts
  * @description A class for managing inter-tab communication via BroadcastChannel.
  *
  * This class implements a singleton pattern to ensure a single instance.
@@ -10,7 +10,7 @@
  */
 import globalConfig from './config'
 import { TabsWorker } from './tabsWorker'
-import {ILayers, TDefaultConfig, TEvent, TLayer, TWildcardEvent, TPayload} from './types';
+import { ILayers, TDefaultConfig, TEvent, TWildcardEvent, TPayload } from '../types';
 
 const WILDCARD_EVENT = '*'
 
@@ -20,18 +20,20 @@ const WILDCARD_EVENT = '*'
  * emit, and handle events.
  */
 export class TabsBroadcast {
-    #channelName: string;
+	channelName: string;
+	layers: ILayers = {};
+	primary: boolean = false; // Indicates whether the current tab is the primary tab.
+
     #listenOwnChannel: boolean;
-    #onBecomePrimaryCallback: (payload: any) => void;
     #emitByPrimaryOnly: boolean;
     #worker: TabsWorker;
     #channel: null|BroadcastChannel;
-    #layers: ILayers
-    primary: boolean = false;
+    #disableInternalErrors: boolean = true;
+	#onBecomePrimaryCallback: (payload: any) => void;
 
     private static instance: null|TabsBroadcast;
 
-    constructor(config: null|TDefaultConfig = null) {
+    constructor(config?: TDefaultConfig) {
         // Ensure singleton instance
         if (TabsBroadcast.instance) return TabsBroadcast.instance;
 
@@ -47,14 +49,12 @@ export class TabsBroadcast {
     #init() {
         if (!window) return
 
-        this.#worker = new TabsWorker();
-        this.#channel = new BroadcastChannel(this.#channelName);
+		this.primary = false;
 
+        this.#worker = new TabsWorker();
+        this.#channel = new BroadcastChannel(this.channelName);
         this.#channel.onmessage = this.#onMessage.bind(this);
         this.#channel.onmessageerror = this.#onError.bind(this);
-
-        this.primary = false;
-
         this.#onBecomePrimary()
     }
 
@@ -67,12 +67,23 @@ export class TabsBroadcast {
 
             if (this.#worker.isPrimaryTab()) {
                 this.primary = true;
-                this.#onBecomePrimaryCallback(_event.detail);
+
+				try {
+					this.#onBecomePrimaryCallback(_event.detail);
+				} catch (e) {
+					this.#handleError('Can\'t execute become primary callback', e);
+				}
             } else {
                 this.primary = false;
             }
         }, { passive: true });
     }
+
+	#handleError(...args: any[]) {
+		if (this.#disableInternalErrors) return;
+
+		console.error(`TabsBroadcast : Channel=${this.channelName}`, ...args)
+	}
 
     /**
      * Checking for the existence of a layer. Creating a new layer if it does not exist
@@ -80,14 +91,14 @@ export class TabsBroadcast {
      * @private
      */
     #checkOrCreateLayer(layer: string = globalConfig.defaultConfig.layer) {
-        if (!this.#layers[layer]) {
-            this.#layers[layer] = {
+        if (!this.layers[layer]) {
+            this.layers[layer] = {
                 name: layer,
                 listeners: []
             }
         }
 
-        return this.#layers[layer]
+        return this.layers[layer]
     }
 
     /**
@@ -102,7 +113,11 @@ export class TabsBroadcast {
 
         _l.listeners = _l.listeners.filter(item => {
             if (item.type === type || item.type === WILDCARD_EVENT) {
-                item.callback({ type, payload, layer });
+				try {
+					item.callback({ type, payload, layer });
+				} catch (e) {
+					this.#handleError('Can\'t execute callback', e);
+				}
 
                 return !item.once;
             }
@@ -117,9 +132,9 @@ export class TabsBroadcast {
      * @private
      */
     #onError(error: MessageEvent) {
-        if (process.env.NODE_ENV === 'production') return;
+		if (this.#disableInternalErrors) return;
 
-        console.error('Can\'t parse message', error);
+		this.#handleError('Can\'t parse message', error);
     }
 
     /**
@@ -129,7 +144,7 @@ export class TabsBroadcast {
      * @param {Function} callback - The function to execute when a message of the specified type is received.
      * @param {string} layer - The name of the layer to which the message is addressed.
      */
-    on(type: string | TWildcardEvent, callback: (event: TEvent) => void, layer: string = globalConfig.defaultConfig.layer) {
+    on(type: string | TWildcardEvent, callback: (event: TPayload) => void, layer: string = globalConfig.defaultConfig.layer) {
         this.#checkOrCreateLayer(layer)
             .listeners
             .push({ type, callback, once: false });
@@ -139,7 +154,7 @@ export class TabsBroadcast {
      * Register multiple callbacks to be executed whenever messages of specified types are received.
      * @param {Array.<Array.<string, function, string>>} list - List of type-callback pairs.
      */
-    onList(list: [string, () => void, string][]) {
+    onList(list: [string, (event: TPayload) => void, string][]) {
         if (!list.length) return;
 
         list.forEach(([type, callback, layer]) => {
@@ -157,7 +172,7 @@ export class TabsBroadcast {
      * @param {function} callback - The function to execute when a message of the specified type is received.
      * @param {string} layer - The name of the layer to which the message is addressed.
      */
-    once(type: string, callback: () => void, layer: string) {
+    once(type: string, callback: (event: TPayload) => void, layer: string) {
         this.#checkOrCreateLayer(layer)
             .listeners
             .push({ type, callback, once: true })
@@ -167,7 +182,7 @@ export class TabsBroadcast {
      * Register multiple callbacks to be executed one-time when messages of specified types are received.
      * @param {Array.<Array.<string, function>>} list - List of type-callback pairs.
      */
-    onceList(list: [string, () => void, string][]) {
+    onceList(list: [string, (event: TPayload) => void, string][]) {
         if (!list.length) return;
 
         list.forEach(([type, callback, layer = globalConfig.defaultConfig.layer]) => {
@@ -186,10 +201,10 @@ export class TabsBroadcast {
      */
     off(type: string, layer: string|null = null) {
         if (layer) {
-            this.#layers[layer].listeners.filter(item => item.type !== type);
+            this.layers[layer].listeners.filter(item => item.type !== type);
         } else {
-            for (const layerName in this.#layers) {
-                this.#layers[layerName].listeners.filter(item => item.type !== type);
+            for (const layerName in this.layers) {
+                this.layers[layerName].listeners.filter(item => item.type !== type);
             }
         }
     }
@@ -202,8 +217,8 @@ export class TabsBroadcast {
         const _l = this.#checkOrCreateLayer(layer);
 
         _l.listeners = []
-        this.#layers[layer] = null
-        delete this.#layers[layer]
+        this.layers[layer] = null
+        delete this.layers[layer]
     }
 
     /**
@@ -245,16 +260,17 @@ export class TabsBroadcast {
      * Set custom config properties
      * @param {TDefaultConfig} config - Optional custom config
      */
-    setConfig(config: null|TDefaultConfig) {
+    setConfig(config?: TDefaultConfig) {
         const _config = {
             ...globalConfig.defaultConfig,
-            ...config
+            ...(config ? config : {})
         };
 
-        this.#channelName = _config.channelName;
-        this.#layers = {};
+        this.channelName = _config.channelName;
+        this.layers = {};
         this.#listenOwnChannel = _config.listenOwnChannel;
         this.#onBecomePrimaryCallback = _config.onBecomePrimary;
+        this.#disableInternalErrors = _config?.disableInternalErrors || true;
         this.#emitByPrimaryOnly = _config.emitByPrimaryOnly;
     }
 
@@ -273,17 +289,17 @@ export class TabsBroadcast {
                 this.#channel = null;
             }
 
-            if (this.#layers) {
-                Object.keys(this.#layers).forEach(layerKey => {
-                    this.#layers[layerKey].listeners = [];
+            if (this.layers) {
+                Object.keys(this.layers).forEach(layerKey => {
+                    this.layers[layerKey].listeners = [];
                 });
 
-                this.#layers = {};
+                this.layers = {};
             }
 
             TabsBroadcast.instance = null;
         } catch (error) {
-            console.error('TabsBroadcast: Error while destroying instance:', error);
+			this.#handleError('Error while destroying instance:', error);
         }
     }
 
@@ -296,13 +312,13 @@ export class TabsBroadcast {
      *                 from all layers.
      */
     getEvents() {
-        const isOnlyDefaultLayer = Object.keys(this.#layers).length === 1 && this.#layers[globalConfig.defaultConfig.layer];
+        const isOnlyDefaultLayer = Object.keys(this.layers).length === 1 && this.layers[globalConfig.defaultConfig.layer];
 
         if (isOnlyDefaultLayer) {
-            return [ ...this.#layers[globalConfig.defaultConfig.layer].listeners ];
+            return [ ...this.layers[globalConfig.defaultConfig.layer].listeners ];
         }
 
-        return Object.values(this.#layers).reduce((acc, layerData) => {
+        return Object.values(this.layers).reduce((acc, layerData) => {
             acc = [ ...acc, ...layerData.listeners ]
             return acc
         }, []);
@@ -314,7 +330,7 @@ export class TabsBroadcast {
      * @return {string[]} An array of strings representing the keys of the layers.
      */
     getLayers() : string[] {
-        return Object.keys(this.#layers)
+        return Object.keys(this.layers)
     }
 
     /**

@@ -12,7 +12,7 @@
  * Author: Andrei (Ravy) Rovnyi
  */
 import globalConfig from './config';
-import type { TEvent } from "./types";
+import { TEvent } from '../types';
 
 export class TabsWorker {
 	private readonly tabId: string;

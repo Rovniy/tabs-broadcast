@@ -9,7 +9,7 @@
  * License: MIT
  * Author: Andrei (Ravy) Rovnyi
  */
-import type { TConfig } from './types';
+import type { TConfig } from '../types';
 
 export default {
 	defaultConfig: {

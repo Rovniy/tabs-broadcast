@@ -2,7 +2,6 @@
 coverage
 node_modules
 .dist
-package-lock.json
 .env
 event.json
 .ftp-deploy-sync-state.json

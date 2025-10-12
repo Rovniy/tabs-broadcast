@@ -1,11 +1,18 @@
 {
   "compilerOptions": {
-    "declarationMap": true,
+	"declaration": true,
+	"declarationMap": true,
+	"emitDeclarationOnly": false,
+	"outDir": "dist",
     "target": "ESNext",
+	"module": "ESNext",
     "moduleResolution": "node",
+	"skipLibCheck": true,
+	"esModuleInterop": true,
     "lib": [
       "ESNext",
-      "dom"
+      "DOM"
     ],
-  }
+  },
+  "include": ["src"]
 }

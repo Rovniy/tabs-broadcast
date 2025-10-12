@@ -1,3 +1,12 @@
+## [3.3.0] - 10/12/2025
+
+- Make `layers` public
+- Fix pack issue
+- Update readme
+- Update docs
+- Update vite config
+- Update src structure
+
 ## [3.2.3] - 04/28/2025
 
 ### Added

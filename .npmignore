@@ -1,11 +1,11 @@
-.idea
 .github
-coverage
+.idea
+example
+index.html
 node_modules
 src
 .gitignore
 .npmignore
-index.html
 package-lock.json
 tsconfig.json
 vite.config.js

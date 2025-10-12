@@ -9,6 +9,6 @@
  * License: MIT
  * Author: Andrei (Ravy) Rovnyi
  */
-import { TabsBroadcast } from './tabsBroadcast'
+import { TabsBroadcast } from './core/tabsBroadcast'
 
 export default TabsBroadcast;

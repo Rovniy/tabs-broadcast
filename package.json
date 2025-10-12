@@ -1,21 +1,34 @@
 {
   "name": "tabs-broadcast",
   "amdName": "tabs-broadcast",
-  "version": "3.2.3",
+  "version": "3.3.0",
   "description": "Library for managing inter-tab communication",
-  "main": "index.es.js",
-  "jsnext:main": "index.es.js",
-  "module": "index.es.js",
-  "umd:main": "index.umd.js",
-  "types": "index.d.ts",
+  "main": "dist/tabs-broadcast.umd.js",
+  "module": "dist/tabs-broadcast.es.js",
+  "types": "dist/index.d.ts",
   "type": "module",
   "scripts": {
-    "build": "vite build"
+    "dev": "vite",
+    "build": "vite build && npm run types:check",
+    "types:check": "tsc --noEmit"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Rovniy/tabs-broadcast.git"
   },
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "import": "./dist/tabs-broadcast.es.js",
+      "require": "./dist/tabs-broadcast.umd.js",
+	  "types": "./dist/index.d.ts"
+	}
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "keywords": [
     "events",
     "eventemitter",
@@ -33,7 +46,9 @@
   },
   "homepage": "https://ravy.pro",
   "devDependencies": {
+    "rollup-plugin-terser": "^7.0.2",
+    "typescript": "^5.9.3",
     "vite": "^6.3.3",
-    "rollup-plugin-terser": "^7.0.2"
+    "vite-plugin-dts": "^4.5.4"
   }
 }

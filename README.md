@@ -79,10 +79,11 @@ import TabsBroadcast from 'tabs-broadcast';
 const tabsBroadcast = new TabsBroadcast();
 ```
 ### Config Options
-- `channelName`: The name of the BroadcastChannel. Using for multiple instance per site.
-- `listenOwnChannel`: Whether the tab should listen to its own emitted messages.
+- `channelName`: The name of the BroadcastChannel. Using for multiple instance per site. Default: `xploit_tab_channel`.
+- `listenOwnChannel:`: Whether the tab should listen to its own emitted messages. Default: `false`.
+- `emitByPrimaryOnly`: Whether only the primary tab can emit messages. Default: `true`.
 - `onBecomePrimary`: Callback function when the tab becomes the primary tab.
-- `emitByPrimaryOnly`: Whether only the primary tab can emit messages.
+- `disableInternalErrors`: Disable internal errors logging. Default `true`.
 
 *To work within the same application with micro-frontends or apps, use the same `channelName`*
 
@@ -94,26 +95,21 @@ const tabsBroadcast = new TabsBroadcast();
 
 The library ensures that one tab is marked as the primary tab and others as slave tabs. When the primary tab is closed, another tab is promoted to the primary status.
 
-#### Example Usage
+#### Basic Usage Example
 
 ```javascript
-window.addEventListener('load', () => {
-    const tabsBroadcast = new TabsBroadcast({
-        onBecomePrimary: (detail) => console.log('This tab became the primary tab:', detail),
-    });
+// Create an instance of TabsBroadcast
+const tabsBroadcast = new TabsBroadcast();
 
-    tabsBroadcast.on('customEvent', (data) => {
-        console.log('Received custom event:', data);
-    });
-
-    if (tabsBroadcast.primary) {
-        tabsBroadcast.emit('customEvent', { message: 'Hello from the primary tab!' });
-    }
+// Register a listener for a custom event
+tabsBroadcast.on('customEvent', (data) => {
+    console.log('Received custom event:', data);
 });
 
-window.addEventListener('beforeunload', () => {
-    tabsBroadcast.destroy();
-});
+// Emit an event only from the primary tab
+if (tabsBroadcast.primary) {
+    tabsBroadcast.emit('customEvent', { message: 'Hello from the primary tab!' });
+}
 ```
 This example demonstrates how to create an instance of **TabsBroadcast**, register an event listener for a custom event, emit an event only from the primary tab, and handle the tab's unload event to destroy the BroadcastChannel.
 
@@ -135,7 +131,9 @@ In modern web applications, users often open multiple tabs of the same applicati
 
 Primary-Slave Tab Management is an effective way to improve performance, manage state, and enhance the reliability of web applications operating with multiple tabs.
 
-### Layers
+---
+
+## Layers
 
 Layers allow you to divide events within a single application into topics, assignments, or streams (whatever you want to call it). An event sent in a particular layer will be processed only by a listener who is waiting for an event in that particular layer.
 
@@ -156,23 +154,23 @@ The library includes a `index.d.ts` file for full type definition support.
 ### `on(message: string, callback: (data: any) => void, layer?: string): void`
 Register a callback to be executed whenever a message of the specified type is received.
 ```javascript
-tabsBroadcast.on('eventType', (data) => {
-    console.log('Event received:', data);
+tabsBroadcast.on('eventName', (data) => {
+    console.log("Event 'eventName' received with payload:", data);
 });
 ```
 
-You can now use the wildcard (`*`) listener to capture **all events** in a specific layer. This is useful when you need to log, monitor, or debug all activity in a layer.
+You can now use the wildcard (`*`) listener to capture **all events**. This is useful when you need to log, monitor, or debug all activity in a layer.
 
 ```javascript
 tabsBroadcast.on('*', (event) => {
     console.log(`Captured wildcard event:`, event);
-}, 'APP_LAYER_0');
+});
 ```
 
 You can specify a layer to isolate the events from each other. The trigger will be triggered only if the specified event is passed to a specific layer
 ```javascript
-tabsBroadcast.on('eventType', (data) => {
-    console.log('Event received:', data);
+tabsBroadcast.on('eventName', (data) => {
+    console.log("Event 'eventName' received with payload:", data);
 }, 'APP_LAYER_0');
 ```
 
@@ -182,9 +180,9 @@ tabsBroadcast.on('eventType', (data) => {
 Register multiple callbacks to be executed whenever messages of specified types are received.
 ```javascript
 tabsBroadcast.onList([
-    ['eventType1', (data) => console.log('Event 1 received:', data)],
-    ['eventType2', (data) => console.log('Event 2 received:', data), 'APP_LAYER_0'],
-    ['eventType3', (data) => console.log('Event 3 received:', data), 'APP_LAYER_1']
+    ['eventName1', (data) => console.log("Event 'eventName1' received:", data)],
+    ['eventName2', (data) => console.log("Event 'eventName2' received:", data), 'APP_LAYER_0'],
+    ['eventName3', (data) => console.log("Event 'eventName3' received:", data), 'APP_LAYER_1']
 ]);
 ```
 
@@ -193,13 +191,13 @@ tabsBroadcast.onList([
 ### `once(message: string, callback: (data: any) => void, layer?: string): void`
 Register a callback to be executed only once when a message of the specified type is received.
 ```javascript
-tabsBroadcast.once('eventType', (data) => {
+tabsBroadcast.once('eventName', (data) => {
     console.log('One-time event received:', data);
 });
 ```
 You can specify a layer to isolate the events from each other
 ```javascript
-tabsBroadcast.once('eventType', (data) => {
+tabsBroadcast.once('eventName', (data) => {
     console.log('One-time event received:', data);
 }, 'APP_LAYER_0');
 ```
@@ -210,9 +208,9 @@ tabsBroadcast.once('eventType', (data) => {
 Register multiple callbacks to be executed one-time when messages of specified types are received.
 ```javascript
 tabsBroadcast.onceList([
-    ['eventType1', (data) => console.log('One-time event 1 received:', data)],
-    ['eventType2', (data) => console.log('One-time event 2 received:', data), 'APP_LAYER_0'],
-    ['eventType3', (data) => console.log('One-time event 3 received:', data), 'APP_LAYER_1'],
+    ['eventName1', (data) => console.log("One-time event 'eventName1' received:", data)],
+    ['eventName2', (data) => console.log("One-time event 'eventName2' received:", data), 'APP_LAYER_0'],
+    ['eventName3', (data) => console.log("One-time event 'eventName3' received:", data), 'APP_LAYER_1'],
 ]);
 ```
 
@@ -221,30 +219,30 @@ tabsBroadcast.onceList([
 ### `off(message: string, layer?: string): void`
 Unregister all callbacks of the specified type.
 ```javascript
-tabsBroadcast.off('eventType');
+tabsBroadcast.off('eventName');
 ```
 
 You can specify a specific layer from which the event should be deleted. If you do not specify it, then all specified events will be deleted from all layers
 ```javascript
-tabsBroadcast.off('eventType', 'APP_LAYER_0');
+tabsBroadcast.off('eventName', 'APP_LAYER_0');
 ```
 
 ---
 
 ### `emit(message: string, data?: any, layer?: string): void`
-Emit a message to all listening tabs with the specified type and payload.
+Emit a message to all listening tabs with the specified name, payload and layer.
 ```javascript
-tabsBroadcast.emit('eventType', { key: 'value' });
-tabsBroadcast.emit('eventType', 'Hello World');
-tabsBroadcast.emit('eventType');
-tabsBroadcast.emit('eventType', null, 'APP_LAYER_3');
-tabsBroadcast.emit('eventType', 'Hello Worlds', 'APP_LAYER_3');
+tabsBroadcast.emit('eventName');
+tabsBroadcast.emit('eventName', 'Hello World');
+tabsBroadcast.emit('eventName', { foo: 'bar', key: new ArrayBuffer() });
+tabsBroadcast.emit('eventName', null, 'APP_LAYER_3');
+tabsBroadcast.emit('eventName', 'Hello Worlds', 'APP_LAYER_4');
 ```
 *You can specify a specific layer in which to send events. It is a good practice when the layers are inherently separated*
 
 The `emit` method supports sending messages to multiple layers simultaneously:
 ```javascript
-tabsBroadcast.emit('eventType', { id: 1 }, [ 'APP_LAYER_0', 'APP_LAYER_3' ]);
+tabsBroadcast.emit('eventName', { id: 1 }, [ 'APP_LAYER_0', 'APP_LAYER_3' ]);
 ```
 
 ---
@@ -256,7 +254,8 @@ tabsBroadcast.setConfig({
     channelName: 'newChannelName',
     listenOwnChannel: false,
     onBecomePrimary: (detail) => console.log('New primary tab:', detail),
-    emitByPrimaryOnly: true
+    emitByPrimaryOnly: true,
+	disableInternalErrors: true
 });
 ```
 
@@ -289,7 +288,7 @@ Receive a list of the using layers.
 ```javascript
 const layers = tabsBroadcast.getLayers();
 
-console.log('Using layers:', layers);
+console.log('Using layers:', layers); // -> ['APP_LAYER_0', 'APP_LAYER_1']
 ```
 
 ---
@@ -319,7 +318,7 @@ A plugin is a function that receives the `TabsBroadcast` instance as a parameter
 ```javascript
 const emitToAllLayersPlugin = (instance) => {
     instance['emitToAllLayers'] = function (type, payload) {
-        const allLayers = Object.keys(this.#layers);
+        const allLayers = Object.keys(this.layers);
         this.emit(type, payload, allLayers);
     };
 };
@@ -349,7 +348,7 @@ const autoLogPlugin = (instance) => {
     };
 
     // Register wildcard listeners for all layers
-    Object.keys(instance.#layers).forEach(layer => {
+    Object.keys(instance.layers).forEach(layer => {
         instance.on('*', (event) => {
             console.log(`[LOG] Event received in layer ${layer}:`, event);
         }, layer);
@@ -399,10 +398,11 @@ tabsBroadcast.emit('customEvent', { myData: 42 }, 'APP_LAYER_0');
 If you have found this library useful and would like to support its continued development and maintenance, you can make a donation to the following USDT (TRC20) wallet address:
 
 ```text
-TUe94e4q3hm5JRYRsNiS8ZbEJC7MNzULDi
+TFWHdvkHs78jrANbyYfAy6JaXVVfKQiwjv
 ```
 
 Your donation will directly contribute to improving functionality, bug fixes, and ensuring long-term support for this library. Thank you for your support! 🚀
 <hr>
 
-![Ravy.pro](https://badgen.net/static/XPLOIT/RAVY/fa4c28)
+### [Ravy.pro](https://ravy.pro)
+#### ![](https://badgen.net/static/XPLOIT/RAVY/fa4c28)

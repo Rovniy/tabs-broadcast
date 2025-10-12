@@ -15,10 +15,11 @@
  */
 export type TDefaultConfig = {
     channelName: string, // Broadcast channel name
-    layer: string,
+    layer: string, // Default layer name
     listenOwnChannel?: boolean, // Listen broadcast event on current tab
     emitByPrimaryOnly?: boolean, // Emits event only by Primary tab
     onBecomePrimary?: (payload: TEvent) => void, // Event that fired when current tab become Primary
+	disableInternalErrors?: boolean // Disable internal errors logging
 }
 
 /**

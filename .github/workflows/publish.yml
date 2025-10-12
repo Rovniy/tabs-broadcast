@@ -25,7 +25,7 @@ jobs:
       - name: Replace %version% in index.html
         run: |
           tag=${{ steps.extract_tag.outputs.VERSION }}
-          sed -i "s#%version%#${tag}#g" index.html
+          sed -i "s#%version%#${tag}#g" example/index.html
 
       - name: Upload files to https://tabs-broadcast.ravy.pro
         uses: SamKirkland/FTP-Deploy-Action@4.1.0
@@ -50,9 +50,9 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npm publish
 
-      - name: Send Telegram notification
-        env:
-          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      - name: Send Discord notification
         run: |
-          curl -s -X POST https://api.telegram.org/bot${{ env.TELEGRAM_TOKEN }}/sendMessage -d chat_id=${{ env.TELEGRAM_CHAT_ID }} -d text="Package https://www.npmjs.com/package/tabs-broadcast with version tag=${{ steps.extract_tag.outputs.VERSION }} deploy completed!"
+          LAST_COMMIT_MESSAGE=$(git log -1 --pretty=%B)
+          curl -s -X POST -H "Content-Type: application/json" \
+            -d "{\"content\": \"💡 [XPLOIT Games](https://xploit.games) : Successfully deployed! Commit: **$LAST_COMMIT_MESSAGE**\"}" \
+            ${{ secrets.DISCORD_WEBHOOK_URL }}

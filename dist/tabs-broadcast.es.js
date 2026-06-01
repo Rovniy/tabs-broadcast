@@ -30,86 +30,102 @@ const globalConfig = {
   }
 };
 
-class TabsWorker {
+function generateTabId() {
+  const prefix = globalConfig.dict.tab_prefix;
+  try {
+    if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+      return prefix + crypto.randomUUID();
+    }
+  } catch {
+  }
+  return prefix + Date.now().toString(36) + Math.random().toString(36).slice(2);
+}
+
+class BaseElector {
   tabId;
   channelName;
   onChange;
   primary = false;
   destroyed = false;
-  keyPrimary;
+  constructor(channelName, onChange) {
+    this.channelName = channelName;
+    this.onChange = onChange;
+    this.tabId = generateTabId();
+  }
+  setPrimary(value) {
+    if (this.primary === value) return;
+    this.primary = value;
+    this.onChange(value, { tabId: this.tabId });
+  }
+  isPrimary() {
+    return this.primary;
+  }
+}
+
+class WebLocksElector extends BaseElector {
   lockName;
-  // Web Locks: resolving this releases the held lock (and our leadership).
+  // Resolving this releases the held lock (and our leadership).
   releaseLock = null;
-  // localStorage fallback bookkeeping
+  constructor(channelName, onChange) {
+    super(channelName, onChange);
+    this.lockName = `${globalConfig.dict.primaryLock}__${channelName}`;
+  }
+  start() {
+    if (this.destroyed) return;
+    const locks = navigator.locks;
+    locks.request(
+      this.lockName,
+      () => new Promise((resolve) => {
+        if (this.destroyed) {
+          resolve();
+          return;
+        }
+        this.releaseLock = resolve;
+        this.setPrimary(true);
+      })
+    ).catch(() => {
+    });
+  }
+  destroy() {
+    if (this.destroyed) return;
+    this.destroyed = true;
+    if (this.releaseLock) {
+      try {
+        this.releaseLock();
+      } catch {
+      }
+      this.releaseLock = null;
+    }
+    this.primary = false;
+  }
+}
+
+class StorageElector extends BaseElector {
+  keyPrimary;
   heartbeatTimer = null;
   storageHandler = null;
   unloadHandler = null;
   constructor(channelName, onChange) {
-    this.channelName = channelName;
-    this.onChange = onChange;
-    this.tabId = this.generateId();
+    super(channelName, onChange);
     this.keyPrimary = `${globalConfig.dict.primaryTabId}__${channelName}`;
-    this.lockName = `${globalConfig.dict.primaryLock}__${channelName}`;
-    this.init();
   }
-  /**
-   * Generate a collision-resistant tab id. Prefers crypto.randomUUID; falls back to
-   * a time+random string in environments that lack it.
-   */
-  generateId() {
-    const prefix = globalConfig.dict.tab_prefix;
-    try {
-      if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
-        return prefix + crypto.randomUUID();
-      }
-    } catch {
-    }
-    return prefix + Date.now().toString(36) + Math.random().toString(36).slice(2);
-  }
-  /**
-   * Choose an election strategy and start it.
-   */
-  init() {
-    if (typeof window === "undefined") return;
-    if (this.hasWebLocks()) {
-      this.initWebLocks();
-    } else {
-      this.initStorageFallback();
-    }
-  }
-  hasWebLocks() {
-    return typeof navigator !== "undefined" && !!navigator.locks && typeof navigator.locks.request === "function";
-  }
-  // --- Web Locks strategy --------------------------------------------------
-  initWebLocks() {
-    const locks = navigator.locks;
-    locks.request(this.lockName, () => new Promise((resolve) => {
-      if (this.destroyed) {
-        resolve();
-        return;
-      }
-      this.releaseLock = resolve;
-      this.setPrimary(true);
-    })).catch(() => {
-    });
-  }
-  // --- localStorage fallback strategy --------------------------------------
-  initStorageFallback() {
+  start() {
+    if (this.destroyed || typeof window === "undefined") return;
     this.storageHandler = (event) => {
       if (event.key === this.keyPrimary) this.evaluate();
     };
     this.unloadHandler = () => this.resign();
     window.addEventListener("storage", this.storageHandler);
     window.addEventListener("pagehide", this.unloadHandler);
-    const start = () => {
+    const begin = () => {
       if (this.destroyed) return;
       this.evaluate();
       this.heartbeatTimer = setInterval(() => this.evaluate(), globalConfig.timing.heartbeat);
     };
     if (document.readyState === "complete") {
-      start();
+      begin();
     } else {
-      window.addEventListener("load", start, { once: true });
+      window.addEventListener("load", begin, { once: true });
     }
   }
   readPrimary() {
@@ -131,9 +147,9 @@ class TabsWorker {
     }
   }
   /**
-   * Re-run the election. Idempotent: claims the slot if it is vacant or stale,
-   * refreshes the heartbeat if we already own it, and yields to a live primary
-   * otherwise (tie-broken by the smaller tab id so concurrent claims converge).
+   * Re-run the election. Idempotent: claims the slot if it is vacant or stale, refreshes
+   * the heartbeat if we already own it, and yields to a live primary otherwise (tie-broken
+   * by the smaller tab id so concurrent claims converge).
    */
   evaluate() {
     if (this.destroyed) return;
@@ -156,9 +172,7 @@ class TabsWorker {
       this.setPrimary(false);
     }
   }
-  /**
-   * Release leadership on tab teardown so another tab can take over immediately.
-   */
+  /** Release leadership on tab teardown so another tab can take over immediately. */
   resign() {
     const current = this.readPrimary();
     if (current && current.tabId === this.tabId) {
@@ -168,30 +182,9 @@ class TabsWorker {
       }
     }
   }
-  setPrimary(value) {
-    if (this.primary === value) return;
-    this.primary = value;
-    this.onChange(value, { tabId: this.tabId });
-  }
-  /**
-   * Whether this tab is currently the primary tab.
-   */
-  isPrimaryTab() {
-    return this.primary;
-  }
-  /**
-   * Tear down all listeners/timers and relinquish leadership.
-   */
   destroy() {
     if (this.destroyed) return;
     this.destroyed = true;
-    if (this.releaseLock) {
-      try {
-        this.releaseLock();
-      } catch {
-      }
-      this.releaseLock = null;
-    }
     if (this.heartbeatTimer !== null) {
       clearInterval(this.heartbeatTimer);
       this.heartbeatTimer = null;
@@ -207,12 +200,35 @@ class TabsWorker {
   }
 }
 
+class TabsWorker {
+  elector;
+  constructor(channelName, onChange) {
+    this.elector = TabsWorker.hasWebLocks() ? new WebLocksElector(channelName, onChange) : new StorageElector(channelName, onChange);
+    this.elector.start();
+  }
+  static hasWebLocks() {
+    return typeof navigator !== "undefined" && !!navigator.locks && typeof navigator.locks.request === "function";
+  }
+  /**
+   * Whether this tab is currently the primary tab.
+   */
+  isPrimaryTab() {
+    return this.elector.isPrimary();
+  }
+  /**
+   * Tear down the election strategy and relinquish leadership.
+   */
+  destroy() {
+    this.elector.destroy();
+  }
+}
+
 const WILDCARD_EVENT = "*";
 class TabsBroadcast {
   channelName;
   layers = {};
+  /** Whether the current tab is the primary tab. */
   primary = false;
-  // Indicates whether the current tab is the primary tab.
   #listenOwnChannel;
   #emitByPrimaryOnly;
   #worker;
@@ -256,8 +272,8 @@ class TabsBroadcast {
     console.error(`TabsBroadcast : Channel=${this.channelName}`, ...args);
   }
   /**
-   * Checking for the existence of a layer. Creating a new layer if it does not exist
-   * @param {string} layer - the name of the layer you are looking for
+   * Look up a layer, creating it if it does not yet exist.
+   * @param layer - The layer name (defaults to the configured default layer).
    * @private
    */
   #checkOrCreateLayer(layer = globalConfig.defaultConfig.layer) {
@@ -273,7 +289,7 @@ class TabsBroadcast {
    * Validate and dispatch a single message to the listeners of its layer.
    * Untrusted input: malformed messages are ignored, and dispatch never creates a
    * new layer (only already-registered layers receive events).
-   * @param {unknown} data - The raw message payload.
+   * @param data - The raw message payload.
    * @private
    */
   #dispatch(data) {
@@ -297,7 +313,7 @@ class TabsBroadcast {
   }
   /**
    * Processing incoming messages
-   * @param {MessageEvent<TPayload>} event - Incoming payload
+   * @param event - Incoming payload
    * @private
    */
   #onMessage(event) {
@@ -305,25 +321,25 @@ class TabsBroadcast {
   }
   /**
    * Error handling in the broker's work
-   * @param {MessageEvent<any>} error - Error
+   * @param error - Error
    * @private
    */
   #onError(error) {
     this.#handleError("Can't parse message", error);
   }
-  /**
-   * Register a callback to be executed whenever a message of the specified type is received.
-   * And register a wildcard listener for all event types.
-   * @param {string} type - The type of the message.
-   * @param {Function} callback - The function to execute when a message of the specified type is received.
-   * @param {string} layer - The name of the layer to which the message is addressed.
-   */
   on(type, callback, layer = globalConfig.defaultConfig.layer) {
     this.#checkOrCreateLayer(layer).listeners.push({ type, callback, once: false });
   }
   /**
-   * Register multiple callbacks to be executed whenever messages of specified types are received.
-   * @param {Array.<Array.<string, function, string>>} list - List of type-callback pairs.
+   * Register multiple persistent listeners at once.
+   * @param list - Tuples of `[type, callback, layer?]`.
+   * @example
+   * ```ts
+   * bus.onList([
+   *   ['eventA', onA],
+   *   ['eventB', onB, 'APP_LAYER_0'],
+   * ]);
+   * ```
    */
   onList(list) {
     if (!list || !list.length) return;
@@ -332,18 +348,12 @@ class TabsBroadcast {
       this.#checkOrCreateLayer(layer).listeners.push({ type, callback, once: false });
     });
   }
-  /**
-   * Register a callback to be executed only once when a message of the specified type is received.
-   * @param {string} type - The type of the message.
-   * @param {function} callback - The function to execute when a message of the specified type is received.
-   * @param {string} layer - The name of the layer to which the message is addressed.
-   */
   once(type, callback, layer = globalConfig.defaultConfig.layer) {
     this.#checkOrCreateLayer(layer).listeners.push({ type, callback, once: true });
   }
   /**
-   * Register multiple callbacks to be executed one-time when messages of specified types are received.
-   * @param {Array.<Array.<string, function>>} list - List of type-callback pairs.
+   * Register multiple one-time listeners at once.
+   * @param list - Tuples of `[type, callback, layer?]`.
    */
   onceList(list) {
     if (!list || !list.length) return;
@@ -353,9 +363,9 @@ class TabsBroadcast {
     });
   }
   /**
-   * Unregister all callbacks of the specified type.
-   * @param {string} type - The type of the messages for which to unregister the callbacks.
-   * @param {string|null} [layer] - Specifying the layer to delete the message from.
+   * Unregister all callbacks of the given type.
+   * @param type - The event type to remove.
+   * @param layer - Optional layer to remove from; omit to remove from every layer.
    */
   off(type, layer = null) {
     const prune = (l) => {
@@ -368,8 +378,8 @@ class TabsBroadcast {
     }
   }
   /**
-   * Delete and unregister all callbacks of the specified layer.
-   * @param {string} layer - The name of the layer to be deleted.
+   * Delete a layer and unregister all of its listeners.
+   * @param layer - The layer name to delete.
    */
   deleteLayer(layer) {
     const _l = this.layers[layer];
@@ -377,12 +387,6 @@ class TabsBroadcast {
     _l.listeners = [];
     delete this.layers[layer];
   }
-  /**
-   * Emit a message to all listening tabs with the specified type, payload and layer.
-   * @param {string} type - The type of the event.
-   * @param {*} payload - The payload to send with the event.
-   * @param {string | string[]} layers - A single layer name or an array of layer names.
-   */
   emit(type, payload = null, layers = globalConfig.defaultConfig.layer) {
     if (this.#emitByPrimaryOnly && !this.primary) return;
     if (!this.#channel) return;
@@ -398,15 +402,15 @@ class TabsBroadcast {
   }
   /**
    * Check if the current tab is the primary tab.
-   * @returns {boolean} - True if the current tab is primary, false otherwise.
-   * @deprecated - Use `TabsBroadcast.primary` for primary tab identify
+   * @returns True if the current tab is primary, false otherwise.
+   * @deprecated Use the `primary` property instead.
    */
   isPrimary() {
     return this.primary;
   }
   /**
-   * Set custom config properties
-   * @param {TDefaultConfig} config - Optional custom config
+   * Set custom config properties.
+   * @param config - Optional custom config (merged over defaults).
    */
   setConfig(config) {
     const _config = {
@@ -421,8 +425,9 @@ class TabsBroadcast {
     this.#emitByPrimaryOnly = _config.emitByPrimaryOnly;
   }
   /**
-   * Destroys the BroadcastChannel and cleans up resources.
-   * @param {number} delay - The optional delay (in milliseconds) before destruction begins.
+   * Destroy the BroadcastChannel, tear down the election worker, clear all listeners,
+   * and reset the singleton.
+   * @param delay - Optional delay in milliseconds before destruction begins.
    */
   async destroy(delay = 0) {
     try {
@@ -450,29 +455,27 @@ class TabsBroadcast {
     }
   }
   /**
-   * Retrieves a list of event listeners across all layers.
-   *
-   * @return {Array} An aggregated copy of every layer's listeners.
+   * Retrieve an aggregated copy of every layer's listeners.
+   * @returns A flat array of all registered listener items.
    */
   getEvents() {
     return Object.values(this.layers).flatMap((layerData) => [...layerData.listeners]);
   }
   /**
-   * Retrieves the list of layer names.
-   *
-   * @return {string[]} An array of strings representing the keys of the layers.
+   * Retrieve the list of registered layer names.
+   * @returns The keys of the layers map.
    */
   getLayers() {
     return Object.keys(this.layers);
   }
   /**
-   * Enable plugins for extending the library.
-   * @param {Function} plugin - Plugin function to extend the TabsBroadcast instance.
+   * Extend the instance with a plugin.
+   * @param plugin - A function receiving the instance to mutate/extend.
    */
   use(plugin) {
     plugin(this);
   }
 }
 
-export { TabsBroadcast as default };
+export { TabsBroadcast, TabsBroadcast as default };
 //# sourceMappingURL=tabs-broadcast.es.js.map

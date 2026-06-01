@@ -1,3 +1,40 @@
+## [4.1.0] - 06/01/2026
+
+Quality, DX, and packaging release. No breaking changes — typed events are opt-in and the
+generic defaults to permissive, so existing untyped code keeps working.
+
+### Added
+
+- **Typed events**: `TabsBroadcast<TEvents>` generic gives full autocomplete and payload
+  type-checking on `on`/`once`/`emit` (wildcard listeners receive the payload union). Untyped
+  usage is unchanged.
+- **Named export**: `import { TabsBroadcast } from 'tabs-broadcast'` in addition to the default
+  export; public types are re-exported from the entry point.
+- **Tooling**: ESLint (flat config + typescript-eslint), Prettier, and `.editorconfig`, with
+  `lint`/`lint:fix`/`format`/`format:check` scripts.
+- **Tests**: split the monolithic suite into focused files (election storage/web-locks, dispatch,
+  emit, security, config, lifecycle) with shared helpers; added a Web Locks test (mocked
+  `navigator.locks`), type-level tests (`test:types`), and V8 coverage (`test:coverage`).
+- **Docs**: rewritten README with a table of contents, quick start, configuration table, typed-events
+  and browser-support sections, `deleteLayer` docs, and a 3.x→4.0 migration note; added
+  `CONTRIBUTING.md`.
+- `prepublishOnly` (build + test) and dual `.d.ts`/`.d.cts` type entries for clean ESM/CJS resolution.
+
+### Changed
+
+- **Internal refactor**: leader election split into strategy modules under `src/core/election/`
+  (`webLocksElector`, `storageElector`, shared `baseElector`/`tabId`), with `tabsWorker` reduced to a
+  thin facade. Public behavior and API unchanged.
+- `package.json`: richer `description` and `keywords`, corrected `author` field (was non-standard
+  `authors`), added `engines`, `unpkg`/`jsdelivr`, `exports` split into `import`/`require` type
+  conditions, `homepage` points to the demo, and `CHANGELOG.md` is now published.
+- Modernized JSDoc across the public API (added `@example`/`@returns`, dropped redundant type tags).
+
+### Fixed
+
+- README: corrected the `listenOwnChannel` default (`false`) and a stray colon, and fixed the author
+  email link.
+
 ## [4.0.0] - 06/01/2026
 
 Major release focused on correctness, primary-tab election robustness, and security

@@ -14,70 +14,76 @@
  * TDefaultConfig represents the default configuration options for the TabsBroadcast.
  */
 export type TDefaultConfig = {
-    channelName?: string, // Broadcast channel name
-    layer?: string, // Default layer name
-    listenOwnChannel?: boolean, // Listen broadcast event on current tab
-    emitByPrimaryOnly?: boolean, // Emits event only by Primary tab
-    onBecomePrimary?: (detail: TPrimaryDetail) => void, // Event that fired when current tab become Primary
-    disableInternalErrors?: boolean // Disable internal errors logging
-}
+	channelName?: string; // Broadcast channel name
+	layer?: string; // Default layer name
+	listenOwnChannel?: boolean; // Listen broadcast event on current tab
+	emitByPrimaryOnly?: boolean; // Emits event only by Primary tab
+	onBecomePrimary?: (detail: TPrimaryDetail) => void; // Event that fired when current tab become Primary
+	disableInternalErrors?: boolean; // Disable internal errors logging
+};
 
 /**
  * TConfig represents the complete configuration structure for the TabsBroadcast.
  */
 export type TConfig = {
-    defaultConfig: Required<TDefaultConfig>,
-    dict: {
-        tab_prefix: string,
-        primaryTabId: string,
-        primaryLock: string,
-    },
-    timing: {
-        heartbeat: number,
-        stale: number,
-    }
-}
+	defaultConfig: Required<TDefaultConfig>;
+	dict: {
+		tab_prefix: string;
+		primaryTabId: string;
+		primaryLock: string;
+	};
+	timing: {
+		heartbeat: number;
+		stale: number;
+	};
+};
 
 /**
  * Layers used for a single channel
  */
 export type TLayer = {
-    name: string,
-    listeners: TCallbackItem[]
-}
+	name: string;
+	listeners: TCallbackItem[];
+};
 export interface ILayers {
-    [key: string]: TLayer
+	[key: string]: TLayer;
 }
 
 /**
  * TCallbackItem represents a callback item to be executed when a specific event type is received.
  */
 export interface TCallbackItem {
-    type: string;
-    callback: (payload: TPayload) => void;
-    layer?: string;
-    once?: boolean;
+	type: string;
+	callback: (payload: TPayload) => void;
+	layer?: string;
+	once?: boolean;
 }
 
 /**
- * TPayload represents the structure of the message payload.
+ * TPayload represents the structure of the message payload delivered to listeners.
+ * @typeParam P - The payload value type (defaults to `any` for untyped usage).
  */
-export type TPayload = {
-    type: string,
-    payload: any,
-    layer: string
-}
+export type TPayload<P = any> = {
+	type: string;
+	payload: P;
+	layer: string;
+};
+
+/**
+ * TEventMap maps event names to their payload types for typed `TabsBroadcast<TEvents>` usage.
+ */
+export type TEventMap = Record<string, any>;
 
 /**
  * Detail passed to the `onBecomePrimary` callback when this tab acquires primary status.
  */
 export type TPrimaryDetail = {
-    tabId: string
-}
+	tabId: string;
+};
 
 /**
  * Handler invoked by TabsWorker whenever this tab's primary status changes.
  */
-export type TPrimaryChangeHandler = (isPrimary: boolean, detail: TPrimaryDetail) => void
+export type TPrimaryChangeHandler = (isPrimary: boolean, detail: TPrimaryDetail) => void;
 
-export type TWildcardEvent = '*'
+export type TWildcardEvent = '*';

@@ -32,4 +32,4 @@ export default {
 		heartbeat: 2000, // primary refreshes its claim this often
 		stale: 5000, // a primary claim older than this is considered dead
 	},
-} as TConfig
+} as TConfig;

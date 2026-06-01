@@ -1,433 +1,345 @@
 # TabsBroadcast
 
-![License](https://badgen.net/github/license/rovniy/tabs-broadcast)
-![Stars](https://badgen.net/github/stars/rovniy/tabs-broadcast)
-![GitHub file size in bytes](https://img.shields.io/github/size/Rovniy/tabs-broadcast/dist/tabs-broadcast.es.js)
-![Latest tag](https://badgen.net/github/tag/Rovniy/tabs-broadcast)
-![Repo depends](https://badgen.net/github/dependents-repo/Rovniy/tabs-broadcast)
-![Pckg depends](https://badgen.net/github/dependents-pkg/Rovniy/tabs-broadcast)
-![Last commits](https://badgen.net/github/last-commit/Rovniy/tabs-broadcast)
+[![npm version](https://img.shields.io/npm/v/tabs-broadcast.svg)](https://www.npmjs.com/package/tabs-broadcast)
+[![npm downloads](https://img.shields.io/npm/dm/tabs-broadcast.svg)](https://www.npmjs.com/package/tabs-broadcast)
+[![types](https://img.shields.io/npm/types/tabs-broadcast.svg)](https://www.npmjs.com/package/tabs-broadcast)
+[![minzipped size](https://img.shields.io/bundlephobia/minzip/tabs-broadcast.svg)](https://bundlephobia.com/package/tabs-broadcast)
+[![License](https://badgen.net/github/license/rovniy/tabs-broadcast)](LICENSE)
 
-TabsBroadcast is a library for managing inter-tab communication via the BroadcastChannel API. It implements a singleton pattern to ensure a single instance and allows for registering, emitting, and handling various types of events across different browser tabs. The library also manages primary and slave tabs, ensuring that only one tab is designated as the primary tab, which can perform certain tasks exclusively.
+**TabsBroadcast** is a tiny, zero-dependency TypeScript library for inter-tab communication over the
+[BroadcastChannel API](https://developer.mozilla.org/docs/Web/API/BroadcastChannel). It elects a single
+**primary tab** (leader) — via the [Web Locks API](https://developer.mozilla.org/docs/Web/API/Web_Locks_API)
+with a `localStorage` fallback — so exactly one tab performs work that must not run in duplicate, while every
+tab can publish and subscribe to typed events, optionally isolated into **layers**.
 
----
+> 🔎 Live demo: **[tabs-broadcast.ravy.pro](https://tabs-broadcast.ravy.pro)**
 
-## License
+## Table of contents
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+- [Features](#features)
+- [Installation](#installation)
+- [Quick start](#quick-start)
+- [Configuration](#configuration)
+- [Primary / slave tabs](#primary--slave-tabs)
+- [Layers](#layers)
+- [Typed events](#typed-events)
+- [API](#api)
+- [Plugins](#plugins)
+- [Security considerations](#security-considerations)
+- [Primary tab election](#primary-tab-election)
+- [Browser support](#browser-support)
+- [Framework usage](#framework-usage)
+- [Migration: 3.x → 4.0](#migration-3x--40)
+- [Contributing](#contributing)
+- [License & author](#license--author)
 
----
-
-## Author
-
-- Andrei (Ravy) Rovnyi
-- [contact@ravy.pro](contact@ravy.pro)
-
----
 ## Features
 
-- Singleton pattern to ensure a single instance.
-- Inter-tab communication using the BroadcastChannel API.
-- Primary-Slave tab management.
-- Event registration and handling.
-- Emit messages to all tabs or only from the primary tab.
-- Configurable settings.
-- Extensible through plugins.
-
----
-
-## Demo
-
-You can access the live demo at the following URL:
-
-[TabsBroadcast Demo](https://tabs-broadcast.ravy.pro)
-
----
+- Inter-tab communication over the **BroadcastChannel API**.
+- **Primary/slave** (leader) election with automatic failover when the primary tab closes.
+- **Web Locks**-based leadership (race-free, self-healing) with a `localStorage` heartbeat fallback.
+- **Layers** to isolate event streams (great for micro-frontends).
+- **Typed events** via an optional generic — full autocomplete and payload type-checking.
+- Wildcard (`*`) listeners, one-time listeners, and bulk registration.
+- Extensible through **plugins**.
+- Zero dependencies, ESM + UMD builds, first-class TypeScript types.
 
 ## Installation
 
-You can install the library using [npm](https://www.npmjs.com/), [pnpm](https://pnpm.io/ru/), [yarn](https://yarnpkg.com/) or [bun](https://bun.sh/):
-
-```
+```bash
 npm install tabs-broadcast
-```
-or
-```
-pnpm install tabs-broadcast
-```
-or
-```
-yarn add tabs-broadcast
-```
-or
-```
-bun install tabs-broadcast
+# or: pnpm add tabs-broadcast / yarn add tabs-broadcast / bun add tabs-broadcast
 ```
 
----
+## Quick start
 
-## Usage
-To use the library, import the **TabsBroadcast** class and initialize it:
-
-### Importing the Library
-```javascript
+```ts
 import TabsBroadcast from 'tabs-broadcast';
-```
+// or: import { TabsBroadcast } from 'tabs-broadcast';
 
-### Creating an Instance
-```javascript
-const tabsBroadcast = new TabsBroadcast();
-```
-### Config Options
-- `channelName`: The name of the BroadcastChannel. Using for multiple instance per site. Default: `xploit_tab_channel`.
-- `listenOwnChannel:`: Whether the tab should listen to its own emitted messages. Default: `false`.
-- `emitByPrimaryOnly`: Whether only the primary tab can emit messages. Default: `true`.
-- `onBecomePrimary`: Callback function when the tab becomes the primary tab.
-- `disableInternalErrors`: Disable internal errors logging. Default `true`.
+const bus = new TabsBroadcast();
 
-*To work within the same application with micro-frontends or apps, use the same `channelName`*
-
----
-
-## Core concept
-
-### Primary-Slave Tab Management
-
-The library ensures that one tab is marked as the primary tab and others as slave tabs. When the primary tab is closed, another tab is promoted to the primary status.
-
-#### Basic Usage Example
-
-```javascript
-// Create an instance of TabsBroadcast
-const tabsBroadcast = new TabsBroadcast();
-
-// Register a listener for a custom event
-tabsBroadcast.on('customEvent', (data) => {
-    console.log('Received custom event:', data);
+// Subscribe (in every tab)
+bus.on('cart:update', ({ payload }) => {
+  console.log('cart changed:', payload);
 });
 
-// Emit an event only from the primary tab
-if (tabsBroadcast.primary) {
-    tabsBroadcast.emit('customEvent', { message: 'Hello from the primary tab!' });
+// Publish (only the primary tab emits by default)
+if (bus.primary) {
+  bus.emit('cart:update', { items: 3 });
 }
 ```
-This example demonstrates how to create an instance of **TabsBroadcast**, register an event listener for a custom event, emit an event only from the primary tab, and handle the tab's unload event to destroy the BroadcastChannel.
 
-### Why Do I Need Primary-Slave Tab Management?
+`TabsBroadcast` is a **singleton**: constructing it again returns the existing instance. Call
+[`destroy()`](#destroydelay-number-promisevoid) to tear it down.
 
-In modern web applications, users often open multiple tabs of the same application. Managing the state and interaction between these tabs efficiently is crucial. Primary-Slave Tab Management addresses several key challenges:
+## Configuration
 
-1. **Avoiding Conflicts**: When multiple tabs attempt to perform the same actions (e.g., synchronizing data with the server), it can lead to conflicts and errors. Primary-Slave Tab Management designates one tab as the primary tab, responsible for executing such critical tasks, while the other tabs (slaves) perform auxiliary functions.
-2. **Resource Optimization**: Performing tasks (like background data synchronization or periodic updates) only in one tab reduces the load on the browser and server, significantly improving performance and lowering resource consumption.
-3. **Centralized State Management**: The primary tab can manage the shared state of the application and coordinate actions across all tabs. This ensures data consistency and predictable application behavior.
-4. **Communication between micro-frontends**. The library allows you to separate individual micro-frontends into layers, which allows them to communicate between each other, as well as with the parent they are rendered into.
+Pass options to the constructor (or [`setConfig`](#setconfigconfig-tdefaultconfig-void)):
 
-### What Problems Can Primary-Slave Tab Management Solve?
+| Option | Type | Default | Description |
+| --- | --- | --- | --- |
+| `channelName` | `string` | `xploit_tab_channel` | BroadcastChannel name. Use the same value across micro-frontends to make them talk; use distinct values for fully independent instances. |
+| `listenOwnChannel` | `boolean` | `false` | If `true`, the emitting tab also receives its own messages locally. |
+| `emitByPrimaryOnly` | `boolean` | `true` | If `true`, `emit()` is a no-op on non-primary tabs. |
+| `onBecomePrimary` | `(detail: { tabId: string }) => void` | `() => {}` | Called when this tab acquires primary status. |
+| `disableInternalErrors` | `boolean` | `true` | If `false`, internal errors are logged via `console.error`. |
 
-1. **Data Synchronization**: The primary tab can perform periodic data synchronization with the server and distribute updates to other tabs, ensuring data is up-to-date across all tabs.
-2. **User Session Management**: The primary tab can monitor user activity and manage sessions (e.g., automatic logout on inactivity), enhancing security and user experience.
-3. **Notifications and Alerts**: The primary tab can centrally handle notifications and alerts, preventing the user from receiving duplicate notifications in every tab.
-4. **Load Distribution**: In scenarios involving resource-intensive operations (e.g., processing large data sets), the primary tab can distribute tasks among other tabs, optimizing overall application performance.
+```ts
+const bus = new TabsBroadcast({
+  channelName: 'my_app',
+  emitByPrimaryOnly: true,
+  onBecomePrimary: ({ tabId }) => console.log('I am primary now:', tabId),
+});
+```
 
-Primary-Slave Tab Management is an effective way to improve performance, manage state, and enhance the reliability of web applications operating with multiple tabs.
+> To make a channel harder for unrelated same-origin scripts to target, use a non-default,
+> hard-to-guess `channelName` (see [Security considerations](#security-considerations)).
 
----
+## Primary / slave tabs
+
+The library guarantees that exactly one open tab is the **primary**; the rest are **slaves**. When the
+primary tab is closed or refreshed, another tab is promoted automatically. This is useful to:
+
+- **Avoid conflicts** — run server sync / writes in one tab only.
+- **Save resources** — perform background polling once instead of per-tab.
+- **Centralize state & notifications** — one tab coordinates and de-duplicates alerts.
+
+```ts
+const bus = new TabsBroadcast({ onBecomePrimary: () => startBackgroundSync() });
+
+bus.on('data:sync', ({ payload }) => updateLocalCache(payload));
+
+if (bus.primary) {
+  // only the primary tab reaches the server
+  bus.emit('data:sync', await fetchLatest());
+}
+```
 
 ## Layers
 
-Layers allow you to divide events within a single application into topics, assignments, or streams (whatever you want to call it). An event sent in a particular layer will be processed only by a listener who is waiting for an event in that particular layer.
+Layers split events within one channel into independent streams. A listener registered in a layer
+only receives events emitted to that layer. Layers also improve performance (fewer iterations) and
+memory use, and are ideal for isolating micro-frontends sharing one channel.
 
-Using layers improves library performance by reducing the number of iterations, and also saves memory consumption.
+```ts
+bus.on('update', onCheckout, 'CHECKOUT');
+bus.on('update', onCatalog, 'CATALOG');
 
----
-
-## TypeScript Support
-
-This library fully supports TypeScript, providing type definitions for seamless integration with TypeScript projects. TypeScript users can leverage static typing to catch errors early in the development process and benefit from improved code editor support, including auto-completion and type checking.
-
-The library includes a `index.d.ts` file for full type definition support.
-
----
-
-## Methods
-
-### `on(message: string, callback: (data: any) => void, layer?: string): void`
-Register a callback to be executed whenever a message of the specified type is received.
-```javascript
-tabsBroadcast.on('eventName', (data) => {
-    console.log("Event 'eventName' received with payload:", data);
-});
+bus.emit('update', { id: 1 }, 'CHECKOUT');            // only onCheckout fires
+bus.emit('update', { id: 2 }, ['CHECKOUT', 'CATALOG']); // both fire
 ```
 
-You can now use the wildcard (`*`) listener to capture **all events**. This is useful when you need to log, monitor, or debug all activity in a layer.
+## Typed events
 
-```javascript
-tabsBroadcast.on('*', (event) => {
-    console.log(`Captured wildcard event:`, event);
-});
+Provide an event map as a generic argument to get full type-safety on `on`/`once`/`emit`:
+
+```ts
+type Events = {
+  'cart:update': { items: number };
+  'user:logout': null;
+  ping: number;
+};
+
+const bus = new TabsBroadcast<Events>();
+
+bus.on('cart:update', ({ payload }) => payload.items.toFixed()); // payload: { items: number }
+bus.emit('ping', 42);                                            // ✅
+bus.emit('ping', 'oops');                                        // ❌ type error
+bus.on('unknown', () => {});                                     // ❌ type error
+
+// Wildcard listeners receive the union of all payloads
+bus.on('*', (event) => console.log(event.type, event.payload));
 ```
 
-You can specify a layer to isolate the events from each other. The trigger will be triggered only if the specified event is passed to a specific layer
-```javascript
-tabsBroadcast.on('eventName', (data) => {
-    console.log("Event 'eventName' received with payload:", data);
-}, 'APP_LAYER_0');
+The generic is optional — `new TabsBroadcast()` stays fully permissive, so existing untyped code keeps
+working unchanged.
+
+## API
+
+### `on(type, callback, layer?)`
+Register a persistent listener. Use `'*'` to capture **every** event in a layer.
+
+```ts
+bus.on('eventName', ({ payload }) => console.log(payload));
+bus.on('*', (event) => console.log('any event:', event), 'APP_LAYER_0');
 ```
 
----
+### `once(type, callback, layer?)`
+Like `on`, but the listener is removed after the first matching event.
 
-### `onList(list: Array<[string, Function, layer]>): void`
-Register multiple callbacks to be executed whenever messages of specified types are received.
-```javascript
-tabsBroadcast.onList([
-    ['eventName1', (data) => console.log("Event 'eventName1' received:", data)],
-    ['eventName2', (data) => console.log("Event 'eventName2' received:", data), 'APP_LAYER_0'],
-    ['eventName3', (data) => console.log("Event 'eventName3' received:", data), 'APP_LAYER_1']
+### `onList(list)` / `onceList(list)`
+Register many listeners at once. Each item is `[type, callback, layer?]`.
+
+```ts
+bus.onList([
+  ['eventA', onA],
+  ['eventB', onB, 'APP_LAYER_0'],
 ]);
 ```
 
----
+### `off(type, layer?)`
+Unregister all callbacks of `type`. Omit `layer` to remove them from **every** layer.
 
-### `once(message: string, callback: (data: any) => void, layer?: string): void`
-Register a callback to be executed only once when a message of the specified type is received.
-```javascript
-tabsBroadcast.once('eventName', (data) => {
-    console.log('One-time event received:', data);
-});
-```
-You can specify a layer to isolate the events from each other
-```javascript
-tabsBroadcast.once('eventName', (data) => {
-    console.log('One-time event received:', data);
-}, 'APP_LAYER_0');
+```ts
+bus.off('eventName');              // all layers
+bus.off('eventName', 'APP_LAYER_0'); // one layer
 ```
 
----
+### `deleteLayer(layer)`
+Remove an entire layer and all of its listeners.
 
-### `onceList(list: Array<[string, Function, string]>): void`
-Register multiple callbacks to be executed one-time when messages of specified types are received.
-```javascript
-tabsBroadcast.onceList([
-    ['eventName1', (data) => console.log("One-time event 'eventName1' received:", data)],
-    ['eventName2', (data) => console.log("One-time event 'eventName2' received:", data), 'APP_LAYER_0'],
-    ['eventName3', (data) => console.log("One-time event 'eventName3' received:", data), 'APP_LAYER_1'],
-]);
+```ts
+bus.deleteLayer('APP_LAYER_0');
 ```
 
----
+### `emit(type, payload?, layers?)`
+Emit a message to all listening tabs (and to this tab if `listenOwnChannel` is enabled). No-op on
+non-primary tabs when `emitByPrimaryOnly` is `true`. `layers` may be a single name or an array.
 
-### `off(message: string, layer?: string): void`
-Unregister all callbacks of the specified type.
-```javascript
-tabsBroadcast.off('eventName');
+```ts
+bus.emit('eventName');
+bus.emit('eventName', { id: 1 });
+bus.emit('eventName', { id: 1 }, ['APP_LAYER_0', 'APP_LAYER_3']);
 ```
 
-You can specify a specific layer from which the event should be deleted. If you do not specify it, then all specified events will be deleted from all layers
-```javascript
-tabsBroadcast.off('eventName', 'APP_LAYER_0');
+### `setConfig(config)`
+Override configuration properties (merged over defaults).
+
+### `destroy(delay?)`
+Tear down the channel and election worker, clear all listeners/layers, relinquish leadership, and
+reset the singleton. Optional `delay` (ms) defers destruction.
+
+```ts
+await bus.destroy();     // immediately
+await bus.destroy(500);  // after 500ms
 ```
 
----
+### `getEvents()` / `getLayers()`
+Inspect registered listeners and layer names.
 
-### `emit(message: string, data?: any, layer?: string): void`
-Emit a message to all listening tabs with the specified name, payload and layer.
-```javascript
-tabsBroadcast.emit('eventName');
-tabsBroadcast.emit('eventName', 'Hello World');
-tabsBroadcast.emit('eventName', { foo: 'bar', key: new ArrayBuffer() });
-tabsBroadcast.emit('eventName', null, 'APP_LAYER_3');
-tabsBroadcast.emit('eventName', 'Hello Worlds', 'APP_LAYER_4');
+```ts
+bus.getEvents();  // TCallbackItem[]
+bus.getLayers();  // e.g. ['APP_LAYER_0', 'APP_LAYER_1']
 ```
-*You can specify a specific layer in which to send events. It is a good practice when the layers are inherently separated*
-
-The `emit` method supports sending messages to multiple layers simultaneously:
-```javascript
-tabsBroadcast.emit('eventName', { id: 1 }, [ 'APP_LAYER_0', 'APP_LAYER_3' ]);
-```
-
----
-
-### `setConfig(config: TDefaultConfig): void`
-Set custom configuration properties.
-```javascript
-tabsBroadcast.setConfig({
-    channelName: 'newChannelName',
-    listenOwnChannel: false,
-    onBecomePrimary: (detail) => console.log('New primary tab:', detail),
-    emitByPrimaryOnly: true,
-	disableInternalErrors: true
-});
-```
-
----
-
-### `destroy(): void`
-The `destroy` method clears all registered listeners, deletes all layers, and releases the BroadcastChannel. Additionally, you can specify an optional delay (in milliseconds) before destruction:
-```javascript
-// Destroy resources with a delay (500ms)
-await tabsBroadcast.destroy(500);
-
-// Destroy resources immediately
-await tabsBroadcast.destroy();
-```
-
----
-
-### `getEvents() : TCallbackItem[]`
-Receive a copy of the registered events list.
-```javascript
-const events = tabsBroadcast.getEvents();
-
-console.log('Registered events:', events);
-```
-
----
-
-### `getLayers() : string[]`
-Receive a list of the using layers.
-```javascript
-const layers = tabsBroadcast.getLayers();
-
-console.log('Using layers:', layers); // -> ['APP_LAYER_0', 'APP_LAYER_1']
-```
-
----
-
-## Static properties
 
 ### `primary: boolean`
-Check if the current tab is the primary tab.
-```javascript
-if (tabsBroadcast.primary) {
-    console.log('This is the primary tab.');
-}
+Whether the current tab is the primary tab.
+
+```ts
+if (bus.primary) bus.emit('tick');
 ```
 
----
+> `isPrimary()` still exists but is **deprecated** — use the `primary` property.
+
+## Plugins
+
+A plugin is a function `(instance) => void` that extends the instance with new methods or wraps
+existing ones. Register it with `use`.
+
+```ts
+const emitToAllLayersPlugin = (instance) => {
+  instance.emitToAllLayers = function (type, payload) {
+    this.emit(type, payload, Object.keys(this.layers));
+  };
+};
+
+const bus = new TabsBroadcast();
+bus.use(emitToAllLayersPlugin);
+bus.emitToAllLayers('globalEvent', { synced: true });
+```
+
+```ts
+// Auto-logging plugin
+const autoLogPlugin = (instance) => {
+  const originalEmit = instance.emit.bind(instance);
+  instance.emit = (type, payload, layers) => {
+    console.log('[LOG] emit', type, payload, layers);
+    originalEmit(type, payload, layers);
+  };
+};
+```
 
 ## Security considerations
 
-`BroadcastChannel` is same-origin, but it is **not** a private channel. Any script running
-on the same origin — third-party tags, browser extensions, or injected code via XSS — that
-knows the channel name can post messages to it. Therefore:
+`BroadcastChannel` is same-origin, but it is **not** a private channel. Any script running on the same
+origin — third-party tags, browser extensions, or injected code via XSS — that knows the channel name
+can post messages to it. Therefore:
 
-- **Treat every received `payload` as untrusted input.** Do not pass it directly to `innerHTML`,
-  `eval`, navigation, or other sensitive sinks without validating it first.
-- TabsBroadcast validates the *shape* of incoming messages and silently ignores malformed ones.
-  Incoming messages are only delivered to listeners of **already-registered layers** — a remote
-  message can never create new layers in your instance.
+- **Treat every received `payload` as untrusted input.** Do not pass it directly to `innerHTML`, `eval`,
+  navigation, or other sensitive sinks without validating it first.
+- TabsBroadcast validates the *shape* of incoming messages and silently ignores malformed ones. Incoming
+  messages are only delivered to listeners of **already-registered layers** — a remote message can never
+  create new layers in your instance.
 - If you need to make the channel harder to target, set a non-default, hard-to-guess `channelName`.
 
 ## Primary tab election
 
-Primary/slave election uses the **Web Locks API** (`navigator.locks`) when available: leadership
-is held for as long as the tab is alive and is released automatically by the browser when the tab
-closes or crashes — so there are no stale entries and no election races. In environments without
-Web Locks, the library falls back to a `localStorage` heartbeat with automatic stale-primary
-recovery. All election state is namespaced per `channelName`, so independent channels never
-contend for the same primary slot.
+Election uses the **Web Locks API** (`navigator.locks`) when available: leadership is held for as long
+as the tab is alive and released automatically by the browser on close/crash — so there are no stale
+entries and no election races. Without Web Locks, the library falls back to a `localStorage` heartbeat
+with automatic stale-primary recovery and a deterministic tab-id tie-break. All election state is
+namespaced per `channelName`, so independent channels never contend for the same primary slot.
 
-The `onBecomePrimary` callback receives a `{ tabId }` detail object identifying the tab that
-became primary.
+`onBecomePrimary` receives a `{ tabId }` detail identifying the tab that became primary.
 
-## Plugins
+## Browser support
 
-TabsBroadcast supports **plugins** to extend its functionality. You can use the `use` method to load plugins.
+Works in all modern browsers that implement `BroadcastChannel` (Chrome/Edge, Firefox, Safari 15.4+).
+Where the **Web Locks API** is available (the common case) it is used for election; otherwise the
+`localStorage` fallback kicks in automatically. SSR is safe — the library no-ops without a `window`.
 
-### Creating a Plugin
+## Framework usage
 
-A plugin is a function that receives the `TabsBroadcast` instance as a parameter and extends it with new methods or logic.
+A minimal React hook:
 
-#### Example: Plugin for Emitting Events to All Layers
+```tsx
+import { useEffect, useRef, useState } from 'react';
+import TabsBroadcast from 'tabs-broadcast';
 
-```javascript
-const emitToAllLayersPlugin = (instance) => {
-    instance['emitToAllLayers'] = function (type, payload) {
-        const allLayers = Object.keys(this.layers);
-        this.emit(type, payload, allLayers);
-    };
-};
+export function useTabsBroadcast() {
+  const ref = useRef<TabsBroadcast>();
+  const [isPrimary, setPrimary] = useState(false);
 
-// Use the plugin
-const tabsBroadcast = new TabsBroadcast();
-tabsBroadcast.use(emitToAllLayersPlugin);
+  if (!ref.current) {
+    ref.current = new TabsBroadcast({ onBecomePrimary: () => setPrimary(true) });
+    setPrimary(ref.current.primary);
+  }
 
-// Emit an event to all existing layers
-tabsBroadcast['emitToAllLayers']('globalEvent', { synced: true });
+  // Note: TabsBroadcast is a singleton; destroy on full app teardown, not per-component.
+  return { bus: ref.current, isPrimary };
+}
 ```
 
----
+## Migration: 3.x → 4.0
 
-### Example: Plugin for Auto Logging
+4.0 is a correctness/security release with a few breaking changes:
 
-This plugin automatically logs all emitted and received messages to the console:
+- **Namespaced election state** — `localStorage`/lock keys are now per-`channelName`. State written by 3.x
+  is not read by 4.0.
+- **`listenOwnChannel` now defaults to `false`** (matches the docs). Pass `true` explicitly to keep the
+  old self-listening behavior.
+- **`onBecomePrimary` detail is now `{ tabId }`** (the `isPrimary` field was removed).
 
-```javascript
-const autoLogPlugin = (instance) => {
-    const originalEmit = instance.emit;
+See the [CHANGELOG](CHANGELOG.md) for the full list, including the `off()` and `disableInternalErrors`
+fixes and the Web Locks election.
 
-    // Extend emit to log outgoing events
-    instance.emit = function (type, payload, layers) {
-        console.log(`[LOG] Emitting event: ${type}`, payload, layers);
-        originalEmit.call(this, type, payload, layers);
-    };
+## Contributing
 
-    // Register wildcard listeners for all layers
-    Object.keys(instance.layers).forEach(layer => {
-        instance.on('*', (event) => {
-            console.log(`[LOG] Event received in layer ${layer}:`, event);
-        }, layer);
-    });
-};
+See [CONTRIBUTING.md](CONTRIBUTING.md). In short:
 
-// Use the plugin
-const tabsBroadcast = new TabsBroadcast();
-tabsBroadcast.use(autoLogPlugin);
-
-// Test emitting events
-tabsBroadcast.emit('testEvent', { foo: 'bar' }, 'APP_LAYER_0');
+```bash
+npm install
+npm test          # unit tests (Vitest + happy-dom)
+npm run test:types # type-level tests
+npm run lint
+npm run build
 ```
 
----
+## License & author
 
-### Example: Notification Plugin
+MIT — see [LICENSE](LICENSE).
 
-This plugin displays a notification whenever an event is emitted:
+Created by **Andrei (Ravy) Rovnyi** — [contact@ravy.pro](mailto:contact@ravy.pro) · [ravy.pro](https://ravy.pro)
 
-```javascript
-const notificationPlugin = (instance) => {
-    instance['notifyOnEmit'] = function (message) {
-        const originalEmit = this.emit;
-        this.emit = function (type, payload, layers) {
-            alert(`Notification: ${message}`);
-            originalEmit.call(this, type, payload, layers);
-        };
-    };
-};
-
-// Use the plugin
-const tabsBroadcast = new TabsBroadcast();
-tabsBroadcast.use(notificationPlugin);
-
-// Enable notifications
-tabsBroadcast['notifyOnEmit']('New event emitted!');
-
-// Emit an event (triggers a browser alert)
-tabsBroadcast.emit('customEvent', { myData: 42 }, 'APP_LAYER_0');
-```
-
----
-
-## Sponsorship and Support
-
-If you have found this library useful and would like to support its continued development and maintenance, you can make a donation to the following USDT (TRC20) wallet address:
-
-```text
-TFWHdvkHs78jrANbyYfAy6JaXVVfKQiwjv
-```
-
-Your donation will directly contribute to improving functionality, bug fixes, and ensuring long-term support for this library. Thank you for your support! 🚀
-<hr>
-
-### [Ravy.pro](https://ravy.pro)
 #### ![](https://badgen.net/static/XPLOIT/RAVY/fa4c28)

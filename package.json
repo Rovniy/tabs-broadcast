@@ -1,18 +1,32 @@
 {
   "name": "tabs-broadcast",
   "amdName": "tabs-broadcast",
-  "version": "4.0.0",
-  "description": "Library for managing inter-tab communication",
+  "version": "4.1.0",
+  "description": "Tiny zero-dependency TypeScript library for inter-tab communication over the BroadcastChannel API, with primary-tab (leader) election via Web Locks.",
   "main": "dist/tabs-broadcast.umd.js",
   "module": "dist/tabs-broadcast.es.js",
   "types": "dist/index.d.ts",
+  "unpkg": "dist/tabs-broadcast.umd.js",
+  "jsdelivr": "dist/tabs-broadcast.umd.js",
   "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build && npm run types:check",
+    "postbuild": "node -e \"require('fs').copyFileSync('dist/index.d.ts','dist/index.d.cts')\"",
     "types:check": "tsc --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:types": "tsc --noEmit -p tsconfig.typecheck.json",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\" \"tests/**/*.ts\"",
+    "check:pkg": "publint",
+    "prepublishOnly": "npm run build && npm test"
   },
   "repository": {
     "type": "git",
@@ -21,14 +35,20 @@
   "sideEffects": false,
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/tabs-broadcast.es.js",
-      "require": "./dist/tabs-broadcast.umd.js"
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/tabs-broadcast.es.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/tabs-broadcast.umd.js"
+      }
     }
   },
   "files": [
     "dist",
     "README.md",
+    "CHANGELOG.md",
     "LICENSE"
   ],
   "keywords": [
@@ -36,21 +56,34 @@
     "eventemitter",
     "pubsub",
     "broadcast",
+    "broadcastchannel",
     "tabs",
-    "communication"
+    "multi-tab",
+    "cross-tab",
+    "tab-sync",
+    "communication",
+    "leader-election",
+    "primary-tab",
+    "web-locks",
+    "micro-frontend",
+    "typescript"
   ],
-  "authors": [
-    "Andrei (Ravy) Rovnyi <contact@ravy.pro>"
-  ],
+  "author": "Andrei (Ravy) Rovnyi <contact@ravy.pro>",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/Rovniy/tabs-broadcast/issues"
   },
-  "homepage": "https://ravy.pro",
+  "homepage": "https://tabs-broadcast.ravy.pro",
   "devDependencies": {
+    "@vitest/coverage-v8": "^2.1.9",
+    "eslint": "^9.39.4",
+    "eslint-config-prettier": "^9.1.2",
     "happy-dom": "^15.11.7",
+    "prettier": "^3.8.3",
+    "publint": "^0.2.12",
     "rollup-plugin-terser": "^7.0.2",
     "typescript": "^5.9.3",
+    "typescript-eslint": "^8.60.0",
     "vite": "^6.3.3",
     "vite-plugin-dts": "^4.5.4",
     "vitest": "^2.1.9"

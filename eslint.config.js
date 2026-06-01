@@ -3,7 +3,8 @@ import prettier from 'eslint-config-prettier';
 
 export default tseslint.config(
 	{
-		ignores: ['dist/**', 'coverage/**', 'node_modules/**', '*.config.js', '*.config.ts'],
+		// `packages/**` are separate workspace packages with their own toolchains/lint.
+		ignores: ['dist/**', 'coverage/**', 'node_modules/**', 'packages/**', '*.config.js', '*.config.ts'],
 	},
 	...tseslint.configs.recommended,
 	{

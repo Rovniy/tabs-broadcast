@@ -1,0 +1,56 @@
+{
+  "name": "tabs-broadcast-nuxt",
+  "version": "0.1.0",
+  "description": "Nuxt module for tabs-broadcast — inter-tab communication over BroadcastChannel with primary-tab election.",
+  "type": "module",
+  "license": "MIT",
+  "author": "Andrei (Ravy) Rovnyi <contact@ravy.pro>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Rovniy/tabs-broadcast.git",
+    "directory": "packages/nuxt"
+  },
+  "homepage": "https://tabs-broadcast.ravy.pro",
+  "bugs": {
+    "url": "https://github.com/Rovniy/tabs-broadcast/issues"
+  },
+  "keywords": [
+    "nuxt",
+    "nuxt-module",
+    "broadcast",
+    "broadcastchannel",
+    "tabs",
+    "cross-tab",
+    "tab-sync",
+    "leader-election"
+  ],
+  "main": "./dist/module.mjs",
+  "types": "./dist/types.d.mts",
+  "exports": {
+    ".": {
+      "types": "./dist/types.d.mts",
+      "import": "./dist/module.mjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "prepack": "nuxt-module-build build",
+    "build": "nuxt-module-build build",
+    "dev:prepare": "nuxt-module-build build --stub"
+  },
+  "dependencies": {
+    "@nuxt/kit": "^3.13.0",
+    "tabs-broadcast": "*"
+  },
+  "peerDependencies": {
+    "nuxt": "^3.0.0 || ^4.0.0"
+  },
+  "devDependencies": {
+    "@nuxt/module-builder": "^0.8.4",
+    "@nuxt/schema": "^3.13.0",
+    "nuxt": "^4.0.0",
+    "typescript": "^5.9.3"
+  }
+}

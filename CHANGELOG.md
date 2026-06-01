@@ -1,3 +1,10 @@
+## Unreleased
+
+- **Nuxt module**: added a companion package `tabs-broadcast-nuxt` (under `packages/nuxt`) that
+  registers a client-only plugin and auto-imports a `useTabsBroadcast()` composable. The core
+  `tabs-broadcast` package is unchanged and remains zero-dependency; the module lives in a separate
+  npm workspace and is versioned/published independently.
+
 ## [4.2.1] - 06/01/2026
 
 - Add favicon to demo page

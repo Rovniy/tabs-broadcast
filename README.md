@@ -311,6 +311,28 @@ export function useTabsBroadcast() {
 }
 ```
 
+### Nuxt
+
+For Nuxt 3/4 there is an official module, [`tabs-broadcast-nuxt`](packages/nuxt), that registers a
+client-only plugin and auto-imports a `useTabsBroadcast()` composable:
+
+```ts
+// nuxt.config.ts
+export default defineNuxtConfig({
+  modules: ['tabs-broadcast-nuxt'],
+  tabsBroadcast: { channelName: 'my-app', listenOwnChannel: true },
+});
+```
+
+```vue
+<script setup lang="ts">
+const bus = useTabsBroadcast();
+onMounted(() => bus.on('tab:open', ({ payload }) => console.log(payload)));
+</script>
+```
+
+See the [module README](packages/nuxt/README.md) for SSR notes and primary-tab emit caveats.
+
 ## Migration: 3.x → 4.0
 
 4.0 is a correctness/security release with a few breaking changes:

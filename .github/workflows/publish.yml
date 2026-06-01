@@ -6,6 +6,10 @@ on:
 
 jobs:
   publish:
+    # The Nuxt module is released via `nuxt-v*` tags (see publish-nuxt.yml). If a
+    # GitHub Release is ever cut on such a tag, skip the core publish so it doesn't
+    # try to set the core version from a `nuxt-v…` string.
+    if: ${{ !startsWith(github.event.release.tag_name, 'nuxt-') }}
     runs-on: ubuntu-latest
 
     steps:

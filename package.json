@@ -9,6 +9,9 @@
   "unpkg": "dist/tabs-broadcast.umd.js",
   "jsdelivr": "dist/tabs-broadcast.umd.js",
   "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
   "engines": {
     "node": ">=18"
   },

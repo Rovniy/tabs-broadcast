@@ -1,3 +1,13 @@
+## [4.2.1] - 06/01/2026
+
+- Add favicon to demo page
+- Fix demo page view
+
+## [4.2.0] - 06/01/2026
+
+Fix build and publish pipeline
+
+
 ## [4.1.0] - 06/01/2026
 
 Quality, DX, and packaging release. No breaking changes — typed events are opt-in and the
@@ -193,7 +203,7 @@ This version represents a major upgrade with layer-based event handling and impr
 
 ## [3.1.4]
 
-- Update readme.md. 
+- Update readme.md.
 - Add min lib files
 
 ## [3.1.3]

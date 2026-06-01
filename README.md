@@ -42,6 +42,7 @@ tab can publish and subscribe to typed events, optionally isolated into **layers
 - **Typed events** via an optional generic — full autocomplete and payload type-checking.
 - Wildcard (`*`) listeners, one-time listeners, and bulk registration.
 - Extensible through **plugins**.
+- Official **[Nuxt 3/4 module](packages/nuxt)** (`tabs-broadcast-nuxt`) with a client plugin and a `useTabsBroadcast()` composable.
 - Zero dependencies, ESM + UMD builds, first-class TypeScript types.
 
 ## Installation
@@ -50,6 +51,9 @@ tab can publish and subscribe to typed events, optionally isolated into **layers
 npm install tabs-broadcast
 # or: pnpm add tabs-broadcast / yarn add tabs-broadcast / bun add tabs-broadcast
 ```
+
+> **Using Nuxt?** Install the official module [`tabs-broadcast-nuxt`](packages/nuxt) instead — it
+> wires everything up and exposes a `useTabsBroadcast()` composable. See [Framework usage → Nuxt](#nuxt).
 
 ## Quick start
 

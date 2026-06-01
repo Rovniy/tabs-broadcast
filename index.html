@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="color-scheme" content="dark">
-    <title>TabsBroadcast %version% demo</title>
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <title>TabsBroadcast demo</title>
     <style>
         :root {
             --bg: #0d1117;
@@ -320,7 +321,7 @@
             </defs>
         </svg>
     </span>
-    <span class="version-badge" id="versionBadge">v%version%</span>
+    <span class="version-badge" id="versionBadge"></span>
 </header>
 
 <main>
@@ -422,6 +423,7 @@
 
 <script type="module">
 	import TabsBroadcast from './dist/tabs-broadcast.es.js'
+	import { version } from './dist/version.js'
 
 	const primaryName = 'Primary tab — can emit events'
 	const slaveName = 'Slave tab — listening only'
@@ -435,10 +437,9 @@
 	const counterDataLayer1 = document.querySelector('#counterDataLayer1')
 	const counterDataLayer2 = document.querySelector('#counterDataLayer2')
 
-	// Local-dev fallback: CI replaces %version% on deploy; show "dev" otherwise.
-	const versionBadge = document.querySelector('#versionBadge')
-	if (versionBadge.textContent.includes('%version%')) versionBadge.textContent = 'dev'
-	if (document.title.includes('%version%')) document.title = 'TabsBroadcast dev demo'
+	// Version comes from the built bundle (generated from package.json at build time).
+	document.querySelector('#versionBadge').textContent = 'v' + version
+	document.title = `TabsBroadcast ${version} demo`
 
 	const setButtonsEnabled = (enabled) => {
 		actionButtons.forEach(btn => { btn.disabled = !enabled })

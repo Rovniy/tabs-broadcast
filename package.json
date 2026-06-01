@@ -15,7 +15,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build && npm run types:check",
-    "postbuild": "node -e \"require('fs').copyFileSync('dist/index.d.ts','dist/index.d.cts')\"",
+    "postbuild": "node scripts/postbuild.mjs",
     "types:check": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",

@@ -1,3 +1,62 @@
+## [4.0.0] - 06/01/2026
+
+Major release focused on correctness, primary-tab election robustness, and security
+hardening. Includes breaking changes — see **Breaking** below.
+
+### Breaking
+
+- **Namespaced election state.** All primary/slave bookkeeping in `localStorage` (and the
+  Web Locks name) is now namespaced per `channelName`. Independent instances using different
+  `channelName`s no longer fight over a single, origin-wide primary slot. State written by
+  3.x is not read by 4.0.
+- **`listenOwnChannel` default is now `false`** (matches the documentation). Previously the
+  code defaulted to `true` while the README documented `false`. Pass `listenOwnChannel: true`
+  explicitly if you relied on the old behavior.
+- **`onBecomePrimary` detail shape** is now `{ tabId }` (the `isPrimary` field was removed; the
+  callback only fires when this tab *becomes* primary).
+
+### Added
+
+- **Web Locks API election.** When `navigator.locks` is available it is used to elect the
+  primary tab. Leadership is held while the tab is alive and released automatically by the
+  browser on close/crash — eliminating election races and stale `localStorage` entries.
+- **Hardened `localStorage` fallback.** For environments without Web Locks: timestamped
+  heartbeat claims with automatic stale-primary recovery and a deterministic tab-id tie-break
+  so concurrent claims converge on a single primary.
+- **Collision-resistant tab ids** via `crypto.randomUUID()` (with a time+random fallback),
+  replacing the `Date.now()`-only id that could collide for tabs opened in the same millisecond.
+- **Test suite** (Vitest + happy-dom): `npm test`.
+- **Security guidance** in the README: incoming channel messages are untrusted input.
+
+### Fixed
+
+- **`off()` now actually removes listeners.** It previously discarded the filtered result, so
+  listeners were never unregistered. It also no longer throws when given an unknown layer.
+- **`disableInternalErrors: false` is now respected.** A `|| true` bug forced it to always be
+  `true`, making internal error logging impossible to enable.
+- **Initial primary tab is detected reliably.** A listener-registration ordering race meant a
+  tab created on an already-loaded page (lazy init / SPA navigation) could stay `primary === false`
+  and never fire `onBecomePrimary`. Primary status now flows through a single source of truth.
+- **`emit()` and `primary` can no longer disagree** — both derive from the same election state.
+- **`destroy()` no longer leaks listeners/timers.** It now tears down the worker's `storage`/
+  `pagehide` listeners and heartbeat timer and relinquishes leadership.
+- **SSR guard** uses `typeof window === 'undefined'` instead of `!window` (the latter throws a
+  ReferenceError when `window` is undefined).
+
+### Security
+
+- Incoming `BroadcastChannel` messages are shape-validated; malformed messages are ignored.
+- Incoming messages are only delivered to **already-registered** layers and can no longer
+  create new layers in your instance (prevents memory growth from untrusted/foreign messages).
+
+### Internal / tooling
+
+- Demo (`index.html`): removed a stray empty `<script>` element embedded in the logo SVG.
+- CI (`publish.yml`): replaced the deprecated `::set-output` with `$GITHUB_OUTPUT`, switched
+  `npm install` → `npm ci`, set the version via `npm version` (keeping the lockfile in sync),
+  and normalized a leading `v` in the release tag.
+- Fixed `package.json` `exports` ordering so the `types` condition is resolved first.
+
 ## [3.3.0] - 10/12/2025
 
 - Make `layers` public

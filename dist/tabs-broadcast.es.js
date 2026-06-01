@@ -3,137 +3,207 @@ const globalConfig = {
     channelName: "xploit_tab_channel",
     // Broadcast channel name
     layer: "default_layer",
-    listenOwnChannel: true,
+    // Default layer name
+    listenOwnChannel: false,
     // Listen broadcast event on current tab
     emitByPrimaryOnly: true,
     // Emits event only by Primary tab
     onBecomePrimary: () => {
-    }
+    },
     // Global event when current tab become Primary
+    disableInternalErrors: true
+    // Disable internal errors logging
   },
   dict: {
+    // Base names. All cross-tab keys/locks are namespaced per `channelName`
+    // at runtime (see TabsWorker) so independent channels never collide.
     tab_prefix: "xploit_tab_id_",
-    slave: "xploit_slave",
-    primary: "xploit_primary",
     primaryTabId: "xploit_primary_tab_id",
-    primaryStatusChanged: "XPLOIT_TAB_STATUS_CHANGED"
+    primaryLock: "xploit_primary_lock"
+  },
+  // Time budget (ms) used by the localStorage fallback election (no Web Locks).
+  timing: {
+    heartbeat: 2e3,
+    // primary refreshes its claim this often
+    stale: 5e3
+    // a primary claim older than this is considered dead
   }
 };
 
 class TabsWorker {
   tabId;
-  constructor() {
-    this.tabId = globalConfig.dict.tab_prefix + Date.now().toString();
+  channelName;
+  onChange;
+  primary = false;
+  destroyed = false;
+  keyPrimary;
+  lockName;
+  // Web Locks: resolving this releases the held lock (and our leadership).
+  releaseLock = null;
+  // localStorage fallback bookkeeping
+  heartbeatTimer = null;
+  storageHandler = null;
+  unloadHandler = null;
+  constructor(channelName, onChange) {
+    this.channelName = channelName;
+    this.onChange = onChange;
+    this.tabId = this.generateId();
+    this.keyPrimary = `${globalConfig.dict.primaryTabId}__${channelName}`;
+    this.lockName = `${globalConfig.dict.primaryLock}__${channelName}`;
     this.init();
   }
   /**
-   * Initializes event listeners for load, beforeunload, and storage events.
+   * Generate a collision-resistant tab id. Prefers crypto.randomUUID; falls back to
+   * a time+random string in environments that lack it.
+   */
+  generateId() {
+    const prefix = globalConfig.dict.tab_prefix;
+    try {
+      if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+        return prefix + crypto.randomUUID();
+      }
+    } catch {
+    }
+    return prefix + Date.now().toString(36) + Math.random().toString(36).slice(2);
+  }
+  /**
+   * Choose an election strategy and start it.
    */
   init() {
     if (typeof window === "undefined") return;
-    const loadCb = () => {
-      if (!localStorage.getItem(globalConfig.dict.primaryTabId)) {
-        this.setPrimaryTab(this.tabId);
-      } else {
-        this.setSlaveTab(this.tabId);
+    if (this.hasWebLocks()) {
+      this.initWebLocks();
+    } else {
+      this.initStorageFallback();
+    }
+  }
+  hasWebLocks() {
+    return typeof navigator !== "undefined" && !!navigator.locks && typeof navigator.locks.request === "function";
+  }
+  // --- Web Locks strategy --------------------------------------------------
+  initWebLocks() {
+    const locks = navigator.locks;
+    locks.request(this.lockName, () => new Promise((resolve) => {
+      if (this.destroyed) {
+        resolve();
+        return;
       }
-      this.notifyTabStatus();
+      this.releaseLock = resolve;
+      this.setPrimary(true);
+    })).catch(() => {
+    });
+  }
+  // --- localStorage fallback strategy --------------------------------------
+  initStorageFallback() {
+    this.storageHandler = (event) => {
+      if (event.key === this.keyPrimary) this.evaluate();
     };
-    const beforeUnloadCb = () => {
-      if (this.isPrimaryTab()) {
-        this.removeTabStatus(globalConfig.dict.primaryTabId);
-        this.transferPrimaryStatus();
-      }
-      this.removeTabStatus(this.tabId);
-    };
-    const storageCb = (event) => {
-      if (event.key === globalConfig.dict.primaryTabId) {
-        this.notifyTabStatus();
-      }
+    this.unloadHandler = () => this.resign();
+    window.addEventListener("storage", this.storageHandler);
+    window.addEventListener("pagehide", this.unloadHandler);
+    const start = () => {
+      if (this.destroyed) return;
+      this.evaluate();
+      this.heartbeatTimer = setInterval(() => this.evaluate(), globalConfig.timing.heartbeat);
     };
     if (document.readyState === "complete") {
-      loadCb();
+      start();
     } else {
-      window.addEventListener("load", loadCb);
-    }
-    window.addEventListener("pagehide", beforeUnloadCb);
-    window.addEventListener("storage", storageCb);
-  }
-  /**
-   * Sets a key-value pair in localStorage.
-   * @param key - The key to set in localStorage.
-   * @param value - The value to set in localStorage.
-   */
-  set(key, value) {
-    localStorage.setItem(key, value);
-  }
-  /**
-   * Gets a value from localStorage by key.
-   * @param key - The key to get from localStorage.
-   * @returns The value associated with the key in localStorage.
-   */
-  get(key) {
-    return localStorage.getItem(key);
-  }
-  /**
-   * Removes a key from localStorage.
-   * @param key - The key to remove from localStorage.
-   */
-  remove(key) {
-    localStorage.removeItem(key);
-  }
-  /**
-   * Sets the current tab as the primary tab.
-   * @param id - The ID of the tab to set as primary.
-   */
-  setPrimaryTab(id) {
-    this.set(globalConfig.dict.primaryTabId, id);
-    this.set(id, globalConfig.dict.primary);
-  }
-  /**
-   * Sets the current tab as a slave tab.
-   * @param id - The ID of the tab to set as slave.
-   */
-  setSlaveTab(id) {
-    this.set(id, globalConfig.dict.slave);
-  }
-  /**
-   * Transfers primary status to another tab if the current primary tab is closed.
-   */
-  transferPrimaryStatus() {
-    const tabs = Object.keys(localStorage).filter((key) => key !== globalConfig.dict.primaryTabId && this.get(key) === globalConfig.dict.slave);
-    if (tabs.length > 0) {
-      this.setPrimaryTab(tabs.at(0));
-    } else {
-      this.remove(globalConfig.dict.primaryTabId);
+      window.addEventListener("load", start, { once: true });
     }
   }
-  /**
-   * Removes the status of a tab from localStorage.
-   * @param id - The ID of the tab to remove status for.
-   */
-  removeTabStatus(id) {
-    this.remove(id);
-  }
-  /**
-   * Notifies other tabs of the current tab's status (primary or slave).
-   */
-  notifyTabStatus() {
-    if (typeof window === "undefined") return;
-    const event = {
-      detail: {
-        tabId: this.tabId,
-        isPrimary: this.isPrimaryTab()
+  readPrimary() {
+    try {
+      const raw = localStorage.getItem(this.keyPrimary);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed.tabId === "string" && typeof parsed.ts === "number") {
+        return parsed;
       }
-    };
-    window.dispatchEvent(new CustomEvent(globalConfig.dict.primaryStatusChanged, event));
+    } catch {
+    }
+    return null;
+  }
+  writePrimary() {
+    try {
+      localStorage.setItem(this.keyPrimary, JSON.stringify({ tabId: this.tabId, ts: Date.now() }));
+    } catch {
+    }
   }
   /**
-   * Checks if the current tab is the primary tab.
-   * @returns True if the current tab is the primary tab, false otherwise.
+   * Re-run the election. Idempotent: claims the slot if it is vacant or stale,
+   * refreshes the heartbeat if we already own it, and yields to a live primary
+   * otherwise (tie-broken by the smaller tab id so concurrent claims converge).
+   */
+  evaluate() {
+    if (this.destroyed) return;
+    const current = this.readPrimary();
+    const fresh = !!current && Date.now() - current.ts <= globalConfig.timing.stale;
+    if (!fresh) {
+      this.writePrimary();
+      this.setPrimary(true);
+      return;
+    }
+    if (current.tabId === this.tabId) {
+      this.writePrimary();
+      this.setPrimary(true);
+      return;
+    }
+    if (this.primary && this.tabId < current.tabId) {
+      this.writePrimary();
+      this.setPrimary(true);
+    } else {
+      this.setPrimary(false);
+    }
+  }
+  /**
+   * Release leadership on tab teardown so another tab can take over immediately.
+   */
+  resign() {
+    const current = this.readPrimary();
+    if (current && current.tabId === this.tabId) {
+      try {
+        localStorage.removeItem(this.keyPrimary);
+      } catch {
+      }
+    }
+  }
+  setPrimary(value) {
+    if (this.primary === value) return;
+    this.primary = value;
+    this.onChange(value, { tabId: this.tabId });
+  }
+  /**
+   * Whether this tab is currently the primary tab.
    */
   isPrimaryTab() {
-    return this.get(globalConfig.dict.primaryTabId) === this.tabId;
+    return this.primary;
+  }
+  /**
+   * Tear down all listeners/timers and relinquish leadership.
+   */
+  destroy() {
+    if (this.destroyed) return;
+    this.destroyed = true;
+    if (this.releaseLock) {
+      try {
+        this.releaseLock();
+      } catch {
+      }
+      this.releaseLock = null;
+    }
+    if (this.heartbeatTimer !== null) {
+      clearInterval(this.heartbeatTimer);
+      this.heartbeatTimer = null;
+    }
+    if (typeof window !== "undefined") {
+      if (this.storageHandler) window.removeEventListener("storage", this.storageHandler);
+      if (this.unloadHandler) window.removeEventListener("pagehide", this.unloadHandler);
+    }
+    this.storageHandler = null;
+    this.unloadHandler = null;
+    this.resign();
+    this.primary = false;
   }
 }
 
@@ -157,34 +227,29 @@ class TabsBroadcast {
     TabsBroadcast.instance = this;
   }
   /**
-   * Initialize the BroadcastChannel and set up event listeners.
+   * Initialize the BroadcastChannel and the primary-tab worker.
    */
   #init() {
-    if (!window) return;
+    if (typeof window === "undefined") return;
     this.primary = false;
-    this.#worker = new TabsWorker();
+    this.#worker = new TabsWorker(this.channelName, (isPrimary, detail) => {
+      this.#handlePrimaryChange(isPrimary, detail);
+    });
     this.#channel = new BroadcastChannel(this.channelName);
     this.#channel.onmessage = this.#onMessage.bind(this);
     this.#channel.onmessageerror = this.#onError.bind(this);
-    this.#onBecomePrimary();
   }
   /**
-   * Set up the event listener for becoming the primary tab.
+   * React to a change in this tab's primary status.
    */
-  #onBecomePrimary() {
-    window.addEventListener(globalConfig.dict.primaryStatusChanged, (event) => {
-      const _event = event;
-      if (this.#worker.isPrimaryTab()) {
-        this.primary = true;
-        try {
-          this.#onBecomePrimaryCallback(_event.detail);
-        } catch (e) {
-          this.#handleError("Can't execute become primary callback", e);
-        }
-      } else {
-        this.primary = false;
-      }
-    }, { passive: true });
+  #handlePrimaryChange(isPrimary, detail) {
+    this.primary = isPrimary;
+    if (!isPrimary) return;
+    try {
+      this.#onBecomePrimaryCallback(detail);
+    } catch (e) {
+      this.#handleError("Can't execute become primary callback", e);
+    }
   }
   #handleError(...args) {
     if (this.#disableInternalErrors) return;
@@ -205,13 +270,19 @@ class TabsBroadcast {
     return this.layers[layer];
   }
   /**
-   * Processing incoming messages
-   * @param {MessageEvent<TPayload>} event - Incoming payload
+   * Validate and dispatch a single message to the listeners of its layer.
+   * Untrusted input: malformed messages are ignored, and dispatch never creates a
+   * new layer (only already-registered layers receive events).
+   * @param {unknown} data - The raw message payload.
    * @private
    */
-  #onMessage(event) {
-    const { type, payload, layer } = event.data;
-    const _l = this.#checkOrCreateLayer(layer);
+  #dispatch(data) {
+    if (!data || typeof data.type !== "string") return;
+    const type = data.type;
+    const layer = typeof data.layer === "string" ? data.layer : globalConfig.defaultConfig.layer;
+    const payload = "payload" in data ? data.payload : null;
+    const _l = this.layers[layer];
+    if (!_l) return;
     _l.listeners = _l.listeners.filter((item) => {
       if (item.type === type || item.type === WILDCARD_EVENT) {
         try {
@@ -225,12 +296,19 @@ class TabsBroadcast {
     });
   }
   /**
+   * Processing incoming messages
+   * @param {MessageEvent<TPayload>} event - Incoming payload
+   * @private
+   */
+  #onMessage(event) {
+    this.#dispatch(event?.data);
+  }
+  /**
    * Error handling in the broker's work
    * @param {MessageEvent<any>} error - Error
    * @private
    */
   #onError(error) {
-    if (this.#disableInternalErrors) return;
     this.#handleError("Can't parse message", error);
   }
   /**
@@ -248,10 +326,10 @@ class TabsBroadcast {
    * @param {Array.<Array.<string, function, string>>} list - List of type-callback pairs.
    */
   onList(list) {
-    if (!list.length) return;
-    list.forEach(([type, callback, layer]) => {
+    if (!list || !list.length) return;
+    list.forEach(([type, callback, layer = globalConfig.defaultConfig.layer]) => {
       if (!type || !callback) return;
-      this.#checkOrCreateLayer(layer).listeners.push({ type, callback });
+      this.#checkOrCreateLayer(layer).listeners.push({ type, callback, once: false });
     });
   }
   /**
@@ -260,7 +338,7 @@ class TabsBroadcast {
    * @param {function} callback - The function to execute when a message of the specified type is received.
    * @param {string} layer - The name of the layer to which the message is addressed.
    */
-  once(type, callback, layer) {
+  once(type, callback, layer = globalConfig.defaultConfig.layer) {
     this.#checkOrCreateLayer(layer).listeners.push({ type, callback, once: true });
   }
   /**
@@ -268,7 +346,7 @@ class TabsBroadcast {
    * @param {Array.<Array.<string, function>>} list - List of type-callback pairs.
    */
   onceList(list) {
-    if (!list.length) return;
+    if (!list || !list.length) return;
     list.forEach(([type, callback, layer = globalConfig.defaultConfig.layer]) => {
       if (!type || !callback) return;
       this.#checkOrCreateLayer(layer).listeners.push({ type, callback, once: true });
@@ -280,12 +358,13 @@ class TabsBroadcast {
    * @param {string|null} [layer] - Specifying the layer to delete the message from.
    */
   off(type, layer = null) {
+    const prune = (l) => {
+      if (l) l.listeners = l.listeners.filter((item) => item.type !== type);
+    };
     if (layer) {
-      this.layers[layer].listeners.filter((item) => item.type !== type);
+      prune(this.layers[layer]);
     } else {
-      for (const layerName in this.layers) {
-        this.layers[layerName].listeners.filter((item) => item.type !== type);
-      }
+      Object.values(this.layers).forEach(prune);
     }
   }
   /**
@@ -293,9 +372,9 @@ class TabsBroadcast {
    * @param {string} layer - The name of the layer to be deleted.
    */
   deleteLayer(layer) {
-    const _l = this.#checkOrCreateLayer(layer);
+    const _l = this.layers[layer];
+    if (!_l) return;
     _l.listeners = [];
-    this.layers[layer] = null;
     delete this.layers[layer];
   }
   /**
@@ -305,7 +384,7 @@ class TabsBroadcast {
    * @param {string | string[]} layers - A single layer name or an array of layer names.
    */
   emit(type, payload = null, layers = globalConfig.defaultConfig.layer) {
-    if (this.#emitByPrimaryOnly && !this.#worker.isPrimaryTab()) return;
+    if (this.#emitByPrimaryOnly && !this.primary) return;
     if (!this.#channel) return;
     const targetLayers = Array.isArray(layers) ? layers : [layers];
     targetLayers.forEach((layer) => {
@@ -313,17 +392,17 @@ class TabsBroadcast {
       const message = { type, payload, layer };
       this.#channel.postMessage(message);
       if (this.#listenOwnChannel) {
-        this.#channel.onmessage({ data: message });
+        this.#dispatch(message);
       }
     });
   }
   /**
    * Check if the current tab is the primary tab.
    * @returns {boolean} - True if the current tab is primary, false otherwise.
-   * @deprecated - Use `TabBroadcast.primary` for primary tab identify
+   * @deprecated - Use `TabsBroadcast.primary` for primary tab identify
    */
   isPrimary() {
-    return this.#worker.isPrimaryTab();
+    return this.primary;
   }
   /**
    * Set custom config properties
@@ -338,7 +417,7 @@ class TabsBroadcast {
     this.layers = {};
     this.#listenOwnChannel = _config.listenOwnChannel;
     this.#onBecomePrimaryCallback = _config.onBecomePrimary;
-    this.#disableInternalErrors = _config?.disableInternalErrors || true;
+    this.#disableInternalErrors = _config.disableInternalErrors ?? true;
     this.#emitByPrimaryOnly = _config.emitByPrimaryOnly;
   }
   /**
@@ -350,6 +429,10 @@ class TabsBroadcast {
       if (delay > 0) {
         await new Promise((resolve) => setTimeout(resolve, delay));
       }
+      if (this.#worker) {
+        this.#worker.destroy();
+        this.#worker = null;
+      }
       if (this.#channel) {
         this.#channel.close();
         this.#channel = null;
@@ -360,27 +443,19 @@ class TabsBroadcast {
         });
         this.layers = {};
       }
+      this.primary = false;
       TabsBroadcast.instance = null;
     } catch (error) {
       this.#handleError("Error while destroying instance:", error);
     }
   }
   /**
-   * Retrieves a list of event listeners from the layers.
+   * Retrieves a list of event listeners across all layers.
    *
-   * @return {Array} An array of event listener objects. If there is only one default layer,
-   *                 returns the listeners from that layer. Otherwise, aggregates listeners
-   *                 from all layers.
+   * @return {Array} An aggregated copy of every layer's listeners.
    */
   getEvents() {
-    const isOnlyDefaultLayer = Object.keys(this.layers).length === 1 && this.layers[globalConfig.defaultConfig.layer];
-    if (isOnlyDefaultLayer) {
-      return [...this.layers[globalConfig.defaultConfig.layer].listeners];
-    }
-    return Object.values(this.layers).reduce((acc, layerData) => {
-      acc = [...acc, ...layerData.listeners];
-      return acc;
-    }, []);
+    return Object.values(this.layers).flatMap((layerData) => [...layerData.listeners]);
   }
   /**
    * Retrieves the list of layer names.

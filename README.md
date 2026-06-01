@@ -305,6 +305,31 @@ if (tabsBroadcast.primary) {
 
 ---
 
+## Security considerations
+
+`BroadcastChannel` is same-origin, but it is **not** a private channel. Any script running
+on the same origin — third-party tags, browser extensions, or injected code via XSS — that
+knows the channel name can post messages to it. Therefore:
+
+- **Treat every received `payload` as untrusted input.** Do not pass it directly to `innerHTML`,
+  `eval`, navigation, or other sensitive sinks without validating it first.
+- TabsBroadcast validates the *shape* of incoming messages and silently ignores malformed ones.
+  Incoming messages are only delivered to listeners of **already-registered layers** — a remote
+  message can never create new layers in your instance.
+- If you need to make the channel harder to target, set a non-default, hard-to-guess `channelName`.
+
+## Primary tab election
+
+Primary/slave election uses the **Web Locks API** (`navigator.locks`) when available: leadership
+is held for as long as the tab is alive and is released automatically by the browser when the tab
+closes or crashes — so there are no stale entries and no election races. In environments without
+Web Locks, the library falls back to a `localStorage` heartbeat with automatic stale-primary
+recovery. All election state is namespaced per `channelName`, so independent channels never
+contend for the same primary slot.
+
+The `onBecomePrimary` callback receives a `{ tabId }` detail object identifying the tab that
+became primary.
+
 ## Plugins
 
 TabsBroadcast supports **plugins** to extend its functionality. You can use the `use` method to load plugins.

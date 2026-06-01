@@ -26,19 +26,19 @@ declare class TabsBroadcast {
      * Register multiple callbacks to be executed whenever messages of specified types are received.
      * @param {Array.<Array.<string, function, string>>} list - List of type-callback pairs.
      */
-    onList(list: [string, (event: TPayload) => void, string][]): void;
+    onList(list: [string, (event: TPayload) => void, string?][]): void;
     /**
      * Register a callback to be executed only once when a message of the specified type is received.
      * @param {string} type - The type of the message.
      * @param {function} callback - The function to execute when a message of the specified type is received.
      * @param {string} layer - The name of the layer to which the message is addressed.
      */
-    once(type: string, callback: (event: TPayload) => void, layer: string): void;
+    once(type: string, callback: (event: TPayload) => void, layer?: string): void;
     /**
      * Register multiple callbacks to be executed one-time when messages of specified types are received.
      * @param {Array.<Array.<string, function>>} list - List of type-callback pairs.
      */
-    onceList(list: [string, (event: TPayload) => void, string][]): void;
+    onceList(list: [string, (event: TPayload) => void, string?][]): void;
     /**
      * Unregister all callbacks of the specified type.
      * @param {string} type - The type of the messages for which to unregister the callbacks.
@@ -60,7 +60,7 @@ declare class TabsBroadcast {
     /**
      * Check if the current tab is the primary tab.
      * @returns {boolean} - True if the current tab is primary, false otherwise.
-     * @deprecated - Use `TabBroadcast.primary` for primary tab identify
+     * @deprecated - Use `TabsBroadcast.primary` for primary tab identify
      */
     isPrimary(): boolean;
     /**
@@ -74,13 +74,11 @@ declare class TabsBroadcast {
      */
     destroy(delay?: number): Promise<void>;
     /**
-     * Retrieves a list of event listeners from the layers.
+     * Retrieves a list of event listeners across all layers.
      *
-     * @return {Array} An array of event listener objects. If there is only one default layer,
-     *                 returns the listeners from that layer. Otherwise, aggregates listeners
-     *                 from all layers.
+     * @return {Array} An aggregated copy of every layer's listeners.
      */
-    getEvents(): any[];
+    getEvents(): TCallbackItem[];
     /**
      * Retrieves the list of layer names.
      *
@@ -100,7 +98,7 @@ export default TabsBroadcast;
  */
 declare interface TCallbackItem {
     type: string;
-    callback: (payload: any) => void;
+    callback: (payload: TPayload) => void;
     layer?: string;
     once?: boolean;
 }
@@ -120,22 +118,12 @@ declare interface TCallbackItem {
  * TDefaultConfig represents the default configuration options for the TabsBroadcast.
  */
 declare type TDefaultConfig = {
-    channelName: string;
-    layer: string;
+    channelName?: string;
+    layer?: string;
     listenOwnChannel?: boolean;
     emitByPrimaryOnly?: boolean;
-    onBecomePrimary?: (payload: TEvent) => void;
+    onBecomePrimary?: (detail: TPrimaryDetail) => void;
     disableInternalErrors?: boolean;
-};
-
-/**
- * TEvent represents the structure of a custom event, detailing the tabId and its primary status.
- */
-declare type TEvent = {
-    detail: {
-        tabId: string;
-        isPrimary: boolean;
-    };
 };
 
 /**
@@ -153,6 +141,13 @@ declare type TPayload = {
     type: string;
     payload: any;
     layer: string;
+};
+
+/**
+ * Detail passed to the `onBecomePrimary` callback when this tab acquires primary status.
+ */
+declare type TPrimaryDetail = {
+    tabId: string;
 };
 
 declare type TWildcardEvent = '*';

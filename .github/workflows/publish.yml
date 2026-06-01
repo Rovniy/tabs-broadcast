@@ -20,7 +20,9 @@ jobs:
 
       - name: Extract version from tag
         id: extract_tag
-        run: echo "::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}"
+        run: |
+          tag="${GITHUB_REF#refs/tags/}"
+          echo "VERSION=${tag#v}" >> "$GITHUB_OUTPUT"
 
       - name: Replace %version% in index.html
         run: |
@@ -34,13 +36,13 @@ jobs:
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
 
+      - name: Install dependencies
+        run: npm ci
+
       - name: Update version in package.json
         run: |
-          sed -i 's/"version": ".*"/"version": "${{ steps.extract_tag.outputs.VERSION }}"/' package.json
+          npm version "${{ steps.extract_tag.outputs.VERSION }}" --no-git-tag-version --allow-same-version
           cat package.json
-
-      - name: Install dependencies
-        run: npm install
 
       - name: Build library
         run: npm run build

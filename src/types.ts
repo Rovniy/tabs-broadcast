@@ -14,25 +14,27 @@
  * TDefaultConfig represents the default configuration options for the TabsBroadcast.
  */
 export type TDefaultConfig = {
-    channelName: string, // Broadcast channel name
-    layer: string, // Default layer name
+    channelName?: string, // Broadcast channel name
+    layer?: string, // Default layer name
     listenOwnChannel?: boolean, // Listen broadcast event on current tab
     emitByPrimaryOnly?: boolean, // Emits event only by Primary tab
-    onBecomePrimary?: (payload: TEvent) => void, // Event that fired when current tab become Primary
-	disableInternalErrors?: boolean // Disable internal errors logging
+    onBecomePrimary?: (detail: TPrimaryDetail) => void, // Event that fired when current tab become Primary
+    disableInternalErrors?: boolean // Disable internal errors logging
 }
 
 /**
  * TConfig represents the complete configuration structure for the TabsBroadcast.
  */
 export type TConfig = {
-    defaultConfig: TDefaultConfig,
+    defaultConfig: Required<TDefaultConfig>,
     dict: {
-        tab_prefix : string,
-        slave : string,
-        primary : string,
-        primaryTabId : string,
-        primaryStatusChanged : string
+        tab_prefix: string,
+        primaryTabId: string,
+        primaryLock: string,
+    },
+    timing: {
+        heartbeat: number,
+        stale: number,
     }
 }
 
@@ -52,7 +54,7 @@ export interface ILayers {
  */
 export interface TCallbackItem {
     type: string;
-    callback: (payload: any) => void;
+    callback: (payload: TPayload) => void;
     layer?: string;
     once?: boolean;
 }
@@ -67,13 +69,15 @@ export type TPayload = {
 }
 
 /**
- * TEvent represents the structure of a custom event, detailing the tabId and its primary status.
+ * Detail passed to the `onBecomePrimary` callback when this tab acquires primary status.
  */
-export type TEvent = {
-    detail: {
-        tabId: string,
-        isPrimary: boolean
-    }
+export type TPrimaryDetail = {
+    tabId: string
 }
+
+/**
+ * Handler invoked by TabsWorker whenever this tab's primary status changes.
+ */
+export type TPrimaryChangeHandler = (isPrimary: boolean, detail: TPrimaryDetail) => void
 
 export type TWildcardEvent = '*'

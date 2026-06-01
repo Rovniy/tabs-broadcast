@@ -1,7 +1,7 @@
 {
   "name": "tabs-broadcast",
   "amdName": "tabs-broadcast",
-  "version": "4.1.0",
+  "version": "4.2.0",
   "description": "Tiny zero-dependency TypeScript library for inter-tab communication over the BroadcastChannel API, with primary-tab (leader) election via Web Locks.",
   "main": "dist/tabs-broadcast.umd.js",
   "module": "dist/tabs-broadcast.es.js",

@@ -1,11 +1,16 @@
-## Unreleased
+## [4.2.2] - 10/15/2026
+
+Documentation-only release. No code changes.
+
+- **Demo URL**: the live demo moved to https://ravy.pro/tools/tabs-broadcast/demo (README link and
+  `homepage` in `package.json` updated).
+
+## [tabs-broadcast-nuxt 0.1.0] - 06/01/2026
 
 - **Nuxt module**: added a companion package `tabs-broadcast-nuxt` (under `packages/nuxt`) that
   registers a client-only plugin and auto-imports a `useTabsBroadcast()` composable. The core
   `tabs-broadcast` package is unchanged and remains zero-dependency; the module lives in a separate
   npm workspace and is versioned/published independently.
-- **Demo URL**: the live demo moved to https://ravy.pro/tools/tabs-broadcast/demo (README link and
-  `homepage` in both `package.json` files updated).
 
 ## [4.2.1] - 06/01/2026
 

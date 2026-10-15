@@ -10,7 +10,7 @@
     "url": "git+https://github.com/Rovniy/tabs-broadcast.git",
     "directory": "packages/nuxt"
   },
-  "homepage": "https://tabs-broadcast.ravy.pro",
+  "homepage": "https://ravy.pro/tools/tabs-broadcast",
   "bugs": {
     "url": "https://github.com/Rovniy/tabs-broadcast/issues"
   },

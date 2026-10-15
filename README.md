@@ -12,7 +12,7 @@
 with a `localStorage` fallback — so exactly one tab performs work that must not run in duplicate, while every
 tab can publish and subscribe to typed events, optionally isolated into **layers**.
 
-> 🔎 Live demo: **[tabs-broadcast.ravy.pro](https://tabs-broadcast.ravy.pro)**
+> 🔎 Live demo: **[ravy.pro/tools/tabs-broadcast/demo](https://ravy.pro/tools/tabs-broadcast/demo)**
 
 ## Table of contents
 

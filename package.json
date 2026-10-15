@@ -76,7 +76,7 @@
   "bugs": {
     "url": "https://github.com/Rovniy/tabs-broadcast/issues"
   },
-  "homepage": "https://tabs-broadcast.ravy.pro",
+  "homepage": "https://ravy.pro/tools/tabs-broadcast",
   "devDependencies": {
     "@vitest/coverage-v8": "^2.1.9",
     "eslint": "^9.39.4",
